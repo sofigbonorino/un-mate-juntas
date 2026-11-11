@@ -341,6 +341,8 @@ function pintarSeccion() {
   const cont = document.getElementById('contenido');
   if (!cont) return;
   const lista = deSeccion(seccionActual);
+  const arriba = document.querySelector('.titulo-seccion .chico-boton');
+  if (arriba) arriba.style.display = lista.length ? '' : 'none';
   if (!lista.length) { cont.innerHTML = vacio(seccionActual); return; }
   if (seccionActual === 'melancolia') return pintarPared(cont, lista);
   if (seccionActual === 'diario') return pintarDiario(cont, lista);
@@ -965,7 +967,7 @@ function vistaPaseo() {
   marco(`
     <main class="pantalla paseo">
       <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
-      ${suelto(D.termo, 'top:70px;right:4%', 10, 28)}
+      ${suelto(D.termo, 'top:170px;right:6%', 10, 26)}
       <h2 class="mano">Un mate juntas al sol</h2>
       <div id="paseo"></div>
     </main>`);

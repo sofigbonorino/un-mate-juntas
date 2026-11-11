@@ -433,3 +433,8 @@ main > *:not(.suelto) { position: relative; z-index: 1; }
 .hoja-dibujo svg { width: 38px; height: 43px; transform: translate(-1px, 1px); }
 .opcion-mate { align-items: center; text-align: center; }
 .paseo h2 { text-align: center; margin-top: 8px; }
+
+/* Títulos centrados en todas las pantallas */
+.titulo-seccion { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; margin: 6px 0 22px; }
+.titulo-seccion h2.mano { justify-content: center; text-align: center; }
+main.pantalla > h2.mano { text-align: center; }
