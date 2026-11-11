@@ -1,9 +1,9 @@
 import { CONFIG } from './config.js';
 
 const SECCIONES = [
-  { id: 'melancolia', nombre: 'Melancolía', bajada: 'fotos y recuerdos de antes', giro: -1.5 },
-  { id: 'diario', nombre: 'Diario', bajada: 'lo que nos pasa en el día a día', giro: 1 },
-  { id: 'actualizaciones', nombre: 'Actualizaciones', bajada: 'las novedades importantes', giro: -0.5 },
+  { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5 },
+  { id: 'diario', nombre: 'Diario', bajada: 'Lo que nos pasa en el día a día', giro: 1 },
+  { id: 'actualizaciones', nombre: 'Actualizaciones', bajada: 'Las novedades importantes', giro: -0.5 },
 ];
 const MODO_PRUEBA = !CONFIG.firebase;
 const MAX_VIDEO_MB = 100;
@@ -28,13 +28,13 @@ const mismo = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLo
 
 function hace(t) {
   const min = (Date.now() - t) / 60000;
-  if (min < 1) return 'recién';
-  if (min < 60) return `hace ${Math.floor(min)} min`;
+  if (min < 1) return 'Recién';
+  if (min < 60) return `Hace ${Math.floor(min)} min`;
   const h = min / 60;
-  if (h < 24) return `hace ${Math.floor(h)} h`;
+  if (h < 24) return `Hace ${Math.floor(h)} h`;
   const d = h / 24;
-  if (d < 2) return 'ayer';
-  if (d < 30) return `hace ${Math.floor(d)} días`;
+  if (d < 2) return 'Ayer';
+  if (d < 30) return `Hace ${Math.floor(d)} días`;
   return new Date(t).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 function mmss(s) {
@@ -77,8 +77,8 @@ function storePrueba(clave) {
       if (v) return v;
     } catch {}
     return [
-      { id: 'e1', fecha: ahora - 2 * 864e5, autor: 'Sofi', seccion: 'melancolia', titulo: 'esto es un ejemplo', texto: 'Así se vería un recuerdo. Acá iría una foto de antes y un audio contándote la historia.', media: [], corazones: [], respuestas: [] },
-      { id: 'e2', fecha: ahora - 3 * 36e5, autor: 'Sofi', seccion: 'diario', titulo: '', texto: 'Otro ejemplo, para el diario: lo que nos pasó hoy.', media: [], corazones: [], respuestas: [{ autor: 'Delfi', texto: 'jajaja las extraño', fecha: ahora - 36e5 }] },
+      { id: 'e1', fecha: ahora - 2 * 864e5, autor: 'Sofi', seccion: 'melancolia', titulo: 'Esto es un ejemplo', texto: 'Así se vería un recuerdo. Acá iría una foto de antes y un audio contándote la historia.', media: [], corazones: [], respuestas: [] },
+      { id: 'e2', fecha: ahora - 3 * 36e5, autor: 'Sofi', seccion: 'diario', titulo: '', texto: 'Otro ejemplo, para el diario: lo que nos pasó hoy.', media: [], corazones: [], respuestas: [{ autor: 'Delfi', texto: 'Jajaja, las extraño', fecha: ahora - 36e5 }] },
     ];
   };
   let lista = leerTodo();
@@ -184,7 +184,7 @@ async function render() {
   if (r === 'bienvenida' || (!yo.vioBienvenida && !yo.clave)) return vistaBienvenida();
   if (!yo.clave || !yo.nombre) return vistaEntrar();
   if (!store) {
-    $app.innerHTML = '<div class="cargando">calentando el agua…</div>';
+    $app.innerHTML = '<div class="cargando">Calentando el agua…</div>';
     let ok;
     try { ok = await conectar(yo.clave); }
     catch (e) {
@@ -269,7 +269,7 @@ function vistaInicio() {
   const tarjetas = SECCIONES.map((s) => {
     const deEsta = posts.filter((p) => p.seccion === s.id);
     const nuevos = deEsta.filter(esNuevo).length;
-    const cuantas = deEsta.length ? `${deEsta.length} ${deEsta.length === 1 ? 'historia' : 'historias'}` : 'todavía vacía';
+    const cuantas = deEsta.length ? `${deEsta.length} ${deEsta.length === 1 ? 'historia' : 'historias'}` : 'Todavía vacía';
     return `<button class="polaroid tarjeta-seccion" style="transform:rotate(${s.giro}deg)" data-ir="s/${s.id}">
       ${nuevos ? `<span class="sello">${nuevos} ${nuevos === 1 ? 'nueva' : 'nuevas'}</span>` : ''}
       <span class="mano">${s.nombre}</span>
@@ -278,7 +278,7 @@ function vistaInicio() {
   }).join('');
   marco(`
     <main class="pantalla">
-      <header class="cabecera"><h1 class="mano">Un mate juntas</h1><div class="chico">hola, ${esc(yo.nombre)}</div></header>
+      <header class="cabecera"><h1 class="mano">Un mate juntas</h1><div class="chico">Hola, ${esc(yo.nombre)}</div></header>
       <div class="secciones">${tarjetas}</div>
       <div class="contar"><button class="boton punteado" data-ir="nuevo">+ Contar algo</button></div>
       <div class="pie-pagina"><button class="link" data-ir="bienvenida">Ver la bienvenida otra vez</button></div>
@@ -294,7 +294,7 @@ function vistaSeccion(id) {
     <main class="pantalla">
       <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
       <div class="titulo-seccion"><h2 class="mano">${s.nombre}</h2><button class="boton claro" data-ir="nuevo/${id}" style="min-height:40px;padding:8px 16px;font-size:15px">+ Contar algo</button></div>
-      <div class="feed" id="feed">${cargado ? '' : '<div class="cargando">trayendo las historias…</div>'}</div>
+      <div class="feed" id="feed">${cargado ? '' : '<div class="cargando">Trayendo las historias…</div>'}</div>
     </main>`);
   if (cargado) actualizarFeed();
 }
@@ -329,7 +329,7 @@ function crearPost(p) {
   const audios = p.media.filter((m) => m.tipo === 'audio');
   const videos = p.media.filter((m) => m.tipo === 'video');
   el.innerHTML = `
-    <div class="autor">${avatar(p.autor)}<div><div class="nombre">${esc(p.autor)}</div><div class="chico">${hace(p.fecha)}</div></div>${esNuevo(p) ? '<span class="nuevo">nuevo</span>' : ''}</div>
+    <div class="autor">${avatar(p.autor)}<div><div class="nombre">${esc(p.autor)}</div><div class="chico">${hace(p.fecha)}</div></div>${esNuevo(p) ? '<span class="nuevo">Nuevo</span>' : ''}</div>
     ${fotos.length ? `<div class="fotos">${fotos.map((m) => `<div class="polaroid" data-ver="${esc(urlFoto(m, 2000))}"><div class="foto"><img loading="lazy" src="${esc(urlFoto(m))}" alt=""></div></div>`).join('')}</div>` : ''}
     ${p.titulo ? `<div class="titulo-post">${esc(p.titulo)}</div>` : ''}
     ${p.texto ? `<div class="texto">${esc(p.texto)}</div>` : ''}
@@ -357,12 +357,12 @@ function pintarPie(el, p) {
   if (pie.dataset.firma === firma) return;
   pie.dataset.firma = firma;
   const mio = p.corazones.some((n) => mismo(n, yo.nombre));
-  const quienes = p.corazones.length ? `a ${p.corazones.length > 3 ? `${p.corazones.slice(0, 2).join(', ')} y ${p.corazones.length - 2} más` : p.corazones.join(p.corazones.length === 2 ? ' y ' : ', ')} ${p.corazones.length === 1 ? 'le gustó' : 'les gustó'}` : '';
+  const quienes = p.corazones.length ? `A ${p.corazones.length > 3 ? `${p.corazones.slice(0, 2).join(', ')} y ${p.corazones.length - 2} más` : p.corazones.join(p.corazones.length === 2 ? ' y ' : ', ')} ${p.corazones.length === 1 ? 'le gustó' : 'les gustó'}` : '';
   pie.innerHTML = `
     <div class="reacciones">
       <button class="corazon ${mio ? 'lleno' : ''}" aria-label="${mio ? 'Sacar corazón' : 'Poner corazón'}" aria-pressed="${mio}">${mio ? ICONOS.corazonLleno : ICONOS.corazon}</button>
       <span>${esc(quienes)}</span>
-      ${mismo(p.autor, yo.nombre) ? '<button class="borrar-post">borrar</button>' : ''}
+      ${mismo(p.autor, yo.nombre) ? '<button class="borrar-post">Borrar</button>' : ''}
     </div>
     ${p.respuestas.length ? `<div class="respuestas">${[...p.respuestas].sort((a, b) => a.fecha - b.fecha).map((r) => `<div class="respuesta"><b>${esc(r.autor)}</b><span class="chico">${hace(r.fecha)}</span><div>${esc(r.texto)}</div></div>`).join('')}</div>` : ''}`;
   pie.querySelector('.corazon').onclick = () => store.corazon(p.id, yo.nombre, !mio).catch(console.error);
@@ -480,7 +480,7 @@ function vistaNuevo(secId) {
         const tipoMime = rec.mimeType || 'audio/webm';
         const ext = tipoMime.includes('mp4') ? 'm4a' : tipoMime.includes('ogg') ? 'ogg' : 'webm';
         const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-        agregar(new File(partes, `audio grabado ${hora}.${ext}`, { type: tipoMime }));
+        agregar(new File(partes, `Audio grabado ${hora}.${ext}`, { type: tipoMime }));
       };
       rec.start(1000);
     } catch (e) {
