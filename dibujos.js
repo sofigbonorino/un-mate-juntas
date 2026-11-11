@@ -2,18 +2,61 @@
 const T = '#4A3A28';
 const linea = `stroke="${T}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
 
-function hojas(puntos) {
-  return puntos.map(([x, y, giro, lado]) =>
-    `<ellipse cx="${x}" cy="${y}" rx="10" ry="3.6" transform="rotate(${giro} ${x} ${y}) translate(${lado * 7} 0)" fill="#A9B68C" stroke="#5E7A35" stroke-width="1.3"/>`
-  ).join('');
+/* Olivo en acuarela: hojas salvia transparentes, tallo finito rosado, bolitas amarillas */
+const VERDES = ['#8FAE9A', '#A7BFAE', '#7C9C8A', '#B9CDBF', '#94B29E', '#6F8F7E'];
+const BAYAS = ['#D8CB7E', '#E2D592', '#C9BB68'];
+function azar(semilla) { let s = semilla; return () => ((s = (s * 9301 + 49297) % 233280) / 233280); }
+const HOJA = 'M0 0 C 7 -5.5, 24 -5.5, 34 0 C 24 5.5, 7 5.5, 0 0 Z';
+
+function rama(r, x0, y0, ang, largo, conBayas = true) {
+  const rad = (ang * Math.PI) / 180;
+  const curva = (r() - 0.5) * 0.5;
+  const x2 = x0 + Math.cos(rad) * largo, y2 = y0 + Math.sin(rad) * largo;
+  const cx = x0 + Math.cos(rad + curva) * largo * 0.55, cy = y0 + Math.sin(rad + curva) * largo * 0.55;
+  const punto = (t) => [
+    (1 - t) ** 2 * x0 + 2 * (1 - t) * t * cx + t ** 2 * x2,
+    (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t ** 2 * y2,
+  ];
+  let svg = `<path d="M${x0} ${y0} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="#C09A88" stroke-width="1.3" stroke-linecap="round" opacity="0.9"/>`;
+  const n = Math.max(4, Math.round(largo / 22));
+  for (let i = 1; i <= n; i++) {
+    const t = i / (n + 0.4);
+    const [x, y] = punto(t);
+    const tam = 0.75 + (1 - t) * 0.55 + r() * 0.2;
+    const dir = ang + (i % 2 ? 1 : -1) * (30 + r() * 25);
+    const color = VERDES[Math.floor(r() * VERDES.length)];
+    const op = (0.55 + r() * 0.35).toFixed(2);
+    svg += `<path d="${HOJA}" fill="${color}" opacity="${op}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${dir.toFixed(0)}) scale(${tam.toFixed(2)})"/>`;
+    if (conBayas && r() < 0.28) {
+      const lado = dir + (i % 2 ? 40 : -40);
+      for (let b = 0; b < 3; b++) {
+        const bx = x + Math.cos(((lado + b * 18) * Math.PI) / 180) * (7 + b * 3);
+        const by = y + Math.sin(((lado + b * 18) * Math.PI) / 180) * (7 + b * 3);
+        svg += `<ellipse cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" rx="3.2" ry="3.8" fill="${BAYAS[b % 3]}" opacity="0.85"/>`;
+      }
+    }
+  }
+  const tipDir = ang + (r() - 0.5) * 10;
+  svg += `<path d="${HOJA}" fill="${VERDES[2]}" opacity="0.7" transform="translate(${x2.toFixed(1)} ${y2.toFixed(1)}) rotate(${tipDir.toFixed(0)}) scale(0.8)"/>`;
+  return svg;
+}
+
+function esquina(semilla) {
+  const r = azar(semilla);
+  const ramas = [[8, 70], [22, 250], [40, 210], [58, 240], [76, 150], [88, 90]]
+    .map(([a, l]) => rama(r, 0, 0, a + (r() - 0.5) * 6, l * (0.9 + r() * 0.2))).join('');
+  return `<svg viewBox="-10 -10 280 280" aria-hidden="true">${ramas}</svg>`;
+}
+
+function ramita(semilla) {
+  const r = azar(semilla);
+  return `<svg viewBox="-6 -40 170 80" aria-hidden="true">${rama(r, 0, 10, -8, 150)}${rama(r, 60, 4, -40, 50, false)}</svg>`;
 }
 
 export const DIBUJOS = {
-  olivo: `<svg viewBox="0 0 140 70" aria-hidden="true">
-    <path d="M6 62 C 40 52, 82 34, 134 8" fill="none" stroke="#5E7A35" stroke-width="2.2" stroke-linecap="round"/>
-    ${hojas([[22, 56, -60, 1], [30, 52, 40, 1], [44, 47, -55, 1], [52, 43, 35, 1], [66, 37, -50, 1], [74, 33, 30, 1], [88, 27, -45, 1], [96, 23, 25, 1], [110, 17, -40, 1], [120, 13, 20, 1]])}
-    <circle cx="48" cy="52" r="3.6" fill="#4E6328"/><circle cx="80" cy="40" r="3.6" fill="#4E6328"/><circle cx="104" cy="28" r="3.2" fill="#3F5220"/>
-  </svg>`,
+  esquina: esquina(7),
+  esquina2: esquina(23),
+  olivo: ramita(11),
 
   mate: `<svg viewBox="0 0 64 74" aria-hidden="true">
     <path d="M40 30 L50 4" stroke="#9A948A" stroke-width="3.2" stroke-linecap="round"/>

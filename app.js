@@ -219,7 +219,7 @@ async function conectar(clave) {
 
 function marco(html) {
   $app.innerHTML = (MODO_PRUEBA ? '<div class="aviso-prueba">Modo prueba: lo que subas queda solo en este celular</div>' : '')
-    + `<div class="fondo-deco" aria-hidden="true"><span class="olivo-arriba">${D.olivo}</span><span class="olivo-abajo">${D.olivo}</span></div>` + html;
+    + `<div class="fondo-deco" aria-hidden="true"><span class="olivo-arriba">${D.esquina}</span><span class="olivo-abajo">${D.esquina2}</span></div>` + html;
 }
 
 /* ---------- Bienvenida ---------- */
