@@ -212,17 +212,18 @@ export const DIBUJOS = {
     <rect x="14" y="38" width="16" height="10" rx="2.5" fill="#F4EEDD" opacity="0.85"/>
   </svg>`,
 
-  palo: `<svg viewBox="0 0 76 84" aria-hidden="true">
+  palo: `<svg viewBox="0 0 70 80" aria-hidden="true">
     <defs>
-      <linearGradient id="palo-madera" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C6A5A"/><stop offset="1" stop-color="#4F4136"/></linearGradient>
-      <radialGradient id="palo-bocha" cx="0.35" cy="0.35" r="0.8"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4DCCB"/></radialGradient>
+      <linearGradient id="palo-cuerpo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3E3A36"/><stop offset="0.45" stop-color="#6A625A"/><stop offset="1" stop-color="#3E3A36"/></linearGradient>
+      <radialGradient id="palo-bocha2" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCD3C2"/></radialGradient>
     </defs>
-    <path d="M54 4 L26 64" stroke="url(#palo-madera)" stroke-width="5.5" stroke-linecap="round"/>
-    <path d="M51 10 L45 23" stroke="#E2A94B" stroke-width="7.5" stroke-linecap="round" opacity="0.95"/>
-    <path d="M26 64 C 21 76, 7 78, 5 69" fill="none" stroke="#5E4E41" stroke-width="7" stroke-linecap="round"/>
-    <ellipse cx="58" cy="73" rx="8" ry="2.4" fill="#C9D8CE" opacity="0.7"/>
-    <circle cx="58" cy="68" r="7" fill="url(#palo-bocha)"/>
-    <path d="M53 66 C 56 64, 60 64, 63 67" fill="none" stroke="#CFC6B4" stroke-width="1.2" opacity="0.8"/>
+    <path d="M45 3 L52 6 L28 58 C 26 66, 22 73, 14 74 C 8 74.5, 4 71, 5 66 C 6 62, 10 61, 12 64 C 13 66, 16 66, 18 62 L41 5 Z" fill="url(#palo-cuerpo)" opacity="0.92"/>
+    <path d="M44.5 4 L51.5 7 L45 21 L38 18 Z" fill="#E07A2E" opacity="0.9"/>
+    <path d="M42 9 L48 12 M40 14 L46 17" stroke="#F4B37A" stroke-width="1.2" opacity="0.8"/>
+    <path d="M20 60 C 18 65, 15 68, 12 68" fill="none" stroke="#9A928A" stroke-width="1.4" opacity="0.6"/>
+    <ellipse cx="54" cy="75" rx="9" ry="2.6" fill="#B9C9B8" opacity="0.6"/>
+    <circle cx="54" cy="68" r="7.5" fill="url(#palo-bocha2)"/>
+    <circle cx="51" cy="65" r="2.2" fill="#FFFFFF" opacity="0.9"/>
   </svg>`,
 
   escudo: `<svg viewBox="0 0 54 64" aria-hidden="true">
@@ -238,7 +239,6 @@ export const DIBUJOS = {
       </g>
       <rect x="0" y="0" width="54" height="64" fill="url(#esc-luz)"/>
     </g>
-    <path d="M27 4 C 35 7, 42 9, 49 10 C 49 36, 40 51, 27 60 C 14 51, 5 36, 5 10 C 12 9, 19 7, 27 4 Z" fill="none" stroke="#3B332C" stroke-width="1.4" opacity="0.45"/>
   </svg>`,
 
   corazon: `<svg viewBox="0 0 30 28" aria-hidden="true">

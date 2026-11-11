@@ -317,7 +317,7 @@ const VACIO = {
 };
 const SUELTO_SECCION = {
   diario: [D.termo, 'top:120px;right:3%', 8, 26],
-  actualizaciones: [D.imperial, 'bottom:30px;left:2%', -8, 40],
+  actualizaciones: [D.guino, 'bottom:40px;left:5%', -10, 34],
   vuelta: [D.te, 'bottom:40px;right:3%', 8, 54],
 };
 const deSeccion = (id) => posts.filter((p) => p.seccion === id);
@@ -364,7 +364,7 @@ function tapaRecuerdo(p) {
   return `<span class="sin-foto texto-tapa">${esc((p.texto || '').slice(0, 90))}${(p.texto || '').length > 90 ? '…' : ''}</span>`;
 }
 function pintarPared(cont, lista) {
-  cont.innerHTML = `<div class="pared"><span class="pared-olivo" aria-hidden="true">${D.olivo}</span><span class="pared-mate" aria-hidden="true">${D.imperial}</span>${lista.map((p) => {
+  cont.innerHTML = `<div class="pared"><span class="pared-olivo" aria-hidden="true">${D.olivo}</span>${lista.map((p) => {
     const h = hash(p.id);
     const giro = ((h % 70) / 10 - 3.5).toFixed(1);
     const baja = (h >> 3) % 18;

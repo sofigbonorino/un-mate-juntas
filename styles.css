@@ -438,3 +438,7 @@ main > *:not(.suelto) { position: relative; z-index: 1; }
 .titulo-seccion { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; margin: 6px 0 22px; }
 .titulo-seccion h2.mano { justify-content: center; text-align: center; }
 main.pantalla > h2.mano { text-align: center; }
+
+/* Melancolía sin papel madera: las polaroids sueltas sobre el fondo */
+.pared { background: none; box-shadow: none; padding: 18px 6px 24px; margin: 0; }
+.recuerdo .foto::before, .recuerdo .foto::after { background: linear-gradient(135deg, rgba(185, 160, 120, 0.75) 50%, transparent 50%); }
