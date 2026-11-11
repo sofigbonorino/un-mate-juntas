@@ -4,7 +4,7 @@ import { DIBUJOS as D } from './dibujos.js';
 const SECCIONES = [
   { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5, dibujo: 'escudo' },
   { id: 'diario', nombre: 'Diario', bajada: 'Lo que nos pasa en el día a día', giro: 1, dibujo: 'mate' },
-  { id: 'actualizaciones', nombre: 'Actualizaciones', bajada: 'Las novedades importantes', giro: -0.5, dibujo: 'palo' },
+  { id: 'actualizaciones', nombre: 'Chismes', bajada: 'Las novedades y los chismes de cada una', giro: -0.5, dibujo: 'palo' },
 ];
 const MODO_PRUEBA = !CONFIG.firebase;
 const MAX_VIDEO_MB = 100;
@@ -234,7 +234,7 @@ function vistaBienvenida() {
       <h1 class="mano aparece" ${d(0.6)}>¡Feliz cumple, ${esc(CONFIG.cumpleanera)}!</h1>
       <p class="aparece" ${d(1.2)}>Como no podemos tomarnos un mate todos los días, te armamos este lugar.</p>
       <p class="aparece" ${d(1.8)}>Acá te vamos a ir dejando historias, fotos y audios largos, de esos que se escuchan como un podcast. Entrá cuando quieras: siempre va a haber algo nuevo.</p>
-      <p class="aparece" ${d(2.4)}>Hay tres rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día y <b>Actualizaciones</b> para las novedades. Y vos también podés contarnos cosas.</p>
+      <p class="aparece" ${d(2.4)}>Hay tres rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día y <b>Chismes</b> para las novedades. Y vos también podés contarnos cosas.</p>
       <div class="firma aparece" ${d(3)}>${esc(CONFIG.firma)}</div>
       ${suelto(D.mate, "top:150px;right:2%", 12, 52)}${suelto(D.corazon, "bottom:150px;left:12%", -10, 26)}
       <button class="boton aparece" ${d(3.4)} id="seguir">Entrar</button>
@@ -303,11 +303,11 @@ function vistaInicio() {
 /* ---------- Sección ---------- */
 let seccionActual = null;
 let postActual = null;
-const BOTON_SUBIR = { melancolia: '+ Sumar recuerdo', diario: '+ Subir historia', actualizaciones: '+ Contar novedad' };
+const BOTON_SUBIR = { melancolia: '+ Sumar recuerdo', diario: '+ Subir historia', actualizaciones: '+ Contar chisme' };
 const VACIO = {
   melancolia: ['Todavía no hay recuerdos', 'Subí la primera foto de antes.'],
   diario: ['Todavía no hay historias', 'Contá algo de tu día.'],
-  actualizaciones: ['Todavía no hay novedades', 'Contá la primera.'],
+  actualizaciones: ['Todavía no hay chismes', 'Contá el primero.'],
 };
 const SUELTO_SECCION = {
   diario: [D.termo, 'top:120px;right:3%', 8, 26],
@@ -549,8 +549,8 @@ function crearPost(p) {
   const htmlTexto = p.texto ? `<div class="texto">${esc(p.texto)}</div>` : '';
   if (nov) el.classList.add('novedad');
   el.innerHTML = (nov ? `
-    <div class="nov-top"><span class="etiqueta">Novedad</span><span class="chico">${new Date(p.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>${privado(p)}${nuevo}</div>
-    <h3 class="titular">${esc(p.titulo || 'Novedad')}</h3>
+    <div class="nov-top"><span class="etiqueta">Chisme</span><span class="chico">${new Date(p.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>${privado(p)}${nuevo}</div>
+    <h3 class="titular">${esc(p.titulo || 'Chisme')}</h3>
     <div class="chico contado">${avatar(p.autor)} Contado por ${esc(p.autor)}</div>
     ${htmlFotos}${htmlVideos}${htmlAudios}${htmlTexto}
     <div class="pie-post"></div>` : `
@@ -662,7 +662,7 @@ function vistaNuevo(secId) {
   const AYUDAS = {
     melancolia: 'Un recuerdo de antes: sale como una polaroid pegada en la página.',
     diario: 'Como una historia de Instagram: una foto, un video, un audio o solo un texto con color de fondo.',
-    actualizaciones: 'Una novedad: un titular, lo que quieras contar y una foto, un audio o un video.',
+    actualizaciones: 'Un chisme: un titular, lo que quieras contar y una foto, un audio o un video.',
   };
   const aplicar = () => {
     document.getElementById('ayuda').textContent = elegida ? AYUDAS[elegida] : '';
@@ -746,9 +746,9 @@ function vistaNuevo(secId) {
     e.preventDefault();
     if (grabacion) { err.textContent = 'Primero pará la grabación.'; return; }
     const texto = f.texto.value.trim();
-    if (!elegida) { err.textContent = 'Elegí dónde va: Melancolía, Diario o Actualizaciones.'; return; }
+    if (!elegida) { err.textContent = 'Elegí dónde va: Melancolía, Diario o Chismes.'; return; }
     const titulo = elegida === 'actualizaciones' ? f.titular.value.trim() : elegida === 'melancolia' ? f.titulo.value.trim() : '';
-    if (elegida === 'actualizaciones' && !titulo) { err.textContent = 'Ponele un titular a la novedad.'; return f.titular.focus(); }
+    if (elegida === 'actualizaciones' && !titulo) { err.textContent = 'Ponele un titular al chisme.'; return f.titular.focus(); }
     if (!texto && !adjuntos.length) { err.textContent = 'Escribí algo o sumá una foto, un audio o un video.'; return f.texto.focus(); }
     if (unaSola() && adjuntos.length > 1) { err.textContent = 'Acá va una sola cosa: quitá las demás.'; return; }
     const btn = document.getElementById('publicar');
