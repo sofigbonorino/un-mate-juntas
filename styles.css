@@ -392,3 +392,44 @@ main > *:not(.suelto) { position: relative; z-index: 1; }
 .fila-paseo small { font-size: 13px; color: var(--tinta-2); }
 .fila-paseo .actual button { border-color: #7C9C8A; box-shadow: 0 0 0 1px #7C9C8A; }
 .fila-paseo .escuchado:not(.actual) button { opacity: 0.6; }
+
+/* Date con Delfi */
+.icono-date { display: inline-flex; width: 22px; height: 16px; vertical-align: -3px; }
+.icono-date svg { width: 100%; height: 100%; }
+.privado-tag { background: #F6E3DA; color: #8E3B27; }
+.candado-recuerdo, .candado-mini { background: rgba(255, 253, 248, 0.92); padding: 3px; }
+.candado-recuerdo { width: 34px; height: 28px; border-radius: 14px; }
+.candado-mini { width: 30px; height: 24px; border-radius: 12px; }
+.candado-recuerdo svg, .candado-mini svg { width: 100%; height: 100%; }
+.privado-opcion input:checked + .interruptor { background: #C0705A; }
+
+/* Gradas en la bienvenida */
+.gradas-bienvenida { width: min(240px, 70vw); margin: 2px auto -6px; }
+.gradas-bienvenida svg { width: 100%; height: auto; }
+
+/* Cuando vuelvas */
+.planes { display: flex; flex-direction: column; gap: 18px; }
+.plan { position: relative; background: #FFFDF8; border: 1px solid var(--borde); border-radius: 4px; padding: 16px 16px 12px; box-shadow: 0 2px 6px rgba(74, 58, 40, 0.08); background-image: repeating-linear-gradient(transparent 0 27px, rgba(143, 174, 154, 0.25) 27px 28px); }
+.plan::before { content: ''; position: absolute; top: -9px; left: 50%; width: 70px; height: 18px; transform: translateX(-50%) rotate(-3deg); background: rgba(240, 228, 190, 0.8); }
+.plan.elegido { border-color: #E2A94B; box-shadow: 0 0 0 2px rgba(226, 169, 75, 0.45); }
+.plan-titulo { font-size: 26px; line-height: 1.15; }
+.plan-texto { margin-top: 6px; white-space: pre-wrap; color: var(--tinta-2); }
+.plan-pie { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.plan-pie .avatar { width: 28px; height: 28px; font-size: 12px; }
+.corazon-plan { margin-left: auto; background: none; border: 0; color: var(--suave); cursor: pointer; padding: 6px; }
+.corazon-plan.lleno { color: var(--acento); }
+.plan-pie .borrar-post { margin-left: auto; }
+.sello-plan { top: -12px; right: 10px; background: #E2A94B; }
+.titulo-opcion { display: flex; align-items: center; gap: 6px; }
+.guino-inline { display: inline-flex; width: 18px; height: 18px; vertical-align: -4px; }
+.guino-inline svg { width: 100%; height: 100%; }
+.bienvenida .guino-inline { width: 21px; height: 21px; }
+.gradas-bienvenida { width: min(270px, 78vw); }
+
+/* Mate centrado dentro de los círculos, con aire alrededor de la bombilla */
+.boton-mate { padding: 0; display: flex; align-items: center; justify-content: center; }
+.boton-mate svg { width: 36px; height: 41px; transform: translate(-1px, 1px); }
+.hoja-dibujo { width: 70px; height: 70px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.hoja-dibujo svg { width: 38px; height: 43px; transform: translate(-1px, 1px); }
+.opcion-mate { align-items: center; text-align: center; }
+.paseo h2 { text-align: center; margin-top: 8px; }

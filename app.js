@@ -4,7 +4,8 @@ import { DIBUJOS as D } from './dibujos.js';
 const SECCIONES = [
   { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5, dibujo: 'escudo' },
   { id: 'diario', nombre: 'Diario', bajada: 'Lo que nos pasa en el día a día', giro: 1, dibujo: 'mate' },
-  { id: 'actualizaciones', nombre: 'Chismes', bajada: 'Las novedades y los chismes de cada una', giro: -0.5, dibujo: 'palo' },
+  { id: 'actualizaciones', nombre: 'Chismes', bajada: `Los chismes de cada una <span class="guino-inline">${D.guino}</span>`, giro: -0.5, dibujo: 'palo' },
+  { id: 'vuelta', nombre: 'Para cuando vengas de visita', bajada: 'Pues ansiedad, ya vamos armando planes', giro: 1.2, dibujo: 'compartir' },
 ];
 const MODO_PRUEBA = !CONFIG.firebase;
 const MAX_VIDEO_MB = 100;
@@ -30,7 +31,7 @@ const normal = (s) => (s || '').trim().toLowerCase().normalize('NFD').replace(/[
 const soyDelfi = () => normal(yo.nombre).startsWith(normal(CONFIG.cumpleanera));
 const puedoVer = (p) => !p.paraDelfi || soyDelfi() || mismo(p.autor, yo.nombre);
 const CANDADO = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-const privado =(p) => (p.paraDelfi ? `<span class="privado-tag">${CANDADO} ${soyDelfi() ? 'Solo para vos' : 'Solo para ' + esc(CONFIG.cumpleanera)}</span>` : '');
+const privado = (p) => (p.paraDelfi ? `<span class="privado-tag"><span class="icono-date">${D.dosMates}</span> ${soyDelfi() ? 'Date con vos' : 'Date con ' + esc(CONFIG.cumpleanera)}</span>` : '');
 
 function hace(t) {
   const min = (Date.now() - t) / 60000;
@@ -234,11 +235,12 @@ function vistaBienvenida() {
     <main class="pantalla bienvenida">
       <div class="polaroid aparece" ${d(0.1)}><div class="foto">${foto}</div><div class="pie">${esc(CONFIG.pieFotoBienvenida)}</div></div>
       <h1 class="mano aparece" ${d(0.6)}>¡Feliz cumple, ${esc(CONFIG.cumpleanera)}!</h1>
-      <p class="aparece" ${d(1.2)}>Como no podemos tomarnos un mate todos los días, te armamos este lugar.</p>
+      <p class="aparece" ${d(1.2)}>Como no podemos sentarnos en las gradas a tomar mate mientras vemos un partido, te armamos este lugar.</p>
       <p class="aparece" ${d(1.8)}>Acá te vamos a ir dejando historias, fotos y audios largos, de esos que se escuchan como un podcast. Entrá cuando quieras: siempre va a haber algo nuevo.</p>
-      <p class="aparece" ${d(2.4)}>Hay tres rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día y <b>Chismes</b> para las novedades. Y vos también podés contarnos cosas.</p>
+      <p class="aparece" ${d(2.4)}>Hay cuatro rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día, <b>Chismes</b> <span class="guino-inline">${D.guino}</span> y <b>Para cuando vengas de visita</b>, para sugerir planes, pues ansiedad. Y vos también podés contarnos cosas.</p>
+      <div class="gradas-bienvenida aparece" ${d(2.7)}>${D.gradas}</div>
       <div class="firma aparece" ${d(3)}>${esc(CONFIG.firma)}</div>
-      ${suelto(D.mate, "top:150px;right:2%", 12, 52)}${suelto(D.corazon, "bottom:150px;left:12%", -10, 26)}
+      ${suelto(D.mate, "top:150px;right:2%", 12, 52)}
       <button class="boton aparece" ${d(3.4)} id="seguir">Entrar</button>
     </main>`);
   document.getElementById('seguir').onclick = () => { guardar({ vioBienvenida: true }); ir(yo.clave ? '' : 'entrar'); };
@@ -250,7 +252,7 @@ function vistaEntrar(msg = '') {
     <main class="pantalla entrar">
       ${suelto(D.te, "top:28px;right:4%", 8, 54)}
       <h1 class="mano">Un mate juntas</h1>
-      <p class="chico centro">Esto es solo para nosotras. Pedile la palabra secreta a las chicas.</p>
+      <p class="chico centro">Pedile la palabra secreta a las chicas.</p>
       <form id="f" novalidate>
         <div class="campo"><label for="nombre">¿Cómo te llamás?</label><input id="nombre" autocomplete="given-name" value="${esc(yo.nombre || '')}" placeholder="Delfi"></div>
         <div class="campo"><label for="clave">Palabra secreta</label><input id="clave" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
@@ -285,7 +287,8 @@ function vistaInicio() {
   const tarjetas = SECCIONES.map((s) => {
     const deEsta = posts.filter((p) => p.seccion === s.id);
     const nuevos = deEsta.filter(esNuevo).length;
-    const cuantas = deEsta.length ? `${deEsta.length} ${deEsta.length === 1 ? 'historia' : 'historias'}` : 'Todavía vacía';
+    const [uno, varios] = s.id === 'vuelta' ? ['plan', 'planes'] : ['historia', 'historias'];
+    const cuantas = deEsta.length ? `${deEsta.length} ${deEsta.length === 1 ? uno : varios}` : 'Todavía vacía';
     return `<button class="polaroid tarjeta-seccion" style="transform:rotate(${s.giro}deg)" data-ir="s/${s.id}">
       ${nuevos ? `<span class="sello">${nuevos} ${nuevos === 1 ? 'nueva' : 'nuevas'}</span>` : ''}
       <span class="deco-tarjeta">${D[s.dibujo]}</span>
@@ -305,15 +308,17 @@ function vistaInicio() {
 /* ---------- Sección ---------- */
 let seccionActual = null;
 let postActual = null;
-const BOTON_SUBIR = { melancolia: '+ Sumar recuerdo', diario: '+ Subir historia', actualizaciones: '+ Contar chisme' };
+const BOTON_SUBIR = { melancolia: '+ Sumar recuerdo', diario: '+ Subir historia', actualizaciones: '+ Contar chisme', vuelta: '+ Proponer plan' };
 const VACIO = {
   melancolia: ['Todavía no hay recuerdos', 'Subí la primera foto de antes.'],
   diario: ['Todavía no hay historias', 'Contá algo de tu día.'],
   actualizaciones: ['Todavía no hay chismes', 'Contá el primero.'],
+  vuelta: ['Todavía no hay planes', 'Proponele el primero para cuando venga.'],
 };
 const SUELTO_SECCION = {
   diario: [D.termo, 'top:120px;right:3%', 8, 26],
-  actualizaciones: [D.te, 'bottom:30px;left:2%', -8, 54],
+  actualizaciones: [D.imperial, 'bottom:30px;left:2%', -8, 40],
+  vuelta: [D.te, 'bottom:40px;right:3%', 8, 54],
 };
 const deSeccion = (id) => posts.filter((p) => p.seccion === id);
 const vacio = (id) => `<div class="vacio"><div class="mano" style="font-size:26px">${VACIO[id][0]}</div><p style="margin:0">${VACIO[id][1]}</p><button class="boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id].slice(2)}</button></div>`;
@@ -339,6 +344,7 @@ function pintarSeccion() {
   if (!lista.length) { cont.innerHTML = vacio(seccionActual); return; }
   if (seccionActual === 'melancolia') return pintarPared(cont, lista);
   if (seccionActual === 'diario') return pintarDiario(cont, lista);
+  if (seccionActual === 'vuelta') return pintarVuelta(cont, lista);
   if (!cont.querySelector('.feed')) cont.innerHTML = '<div class="feed" id="feed"></div>';
   actualizarFeed(lista);
 }
@@ -364,11 +370,35 @@ function pintarPared(cont, lista) {
     const pie = p.titulo || (p.media.length ? (p.texto || '').split('\n')[0].slice(0, 40) : '') || '';
     return `<button class="polaroid recuerdo" style="transform:rotate(${giro}deg);margin-top:${baja}px" data-ir="p/${p.id}">
       <span class="cinta" style="transform:translateX(-50%) rotate(${cinta}deg)"></span>
-      ${esNuevo(p) ? '<span class="sello">Nuevo</span>' : ''}${p.paraDelfi ? `<span class="candado-recuerdo" aria-label="Privado">${CANDADO}</span>` : ''}
+      ${esNuevo(p) ? '<span class="sello">Nuevo</span>' : ''}${p.paraDelfi ? `<span class="candado-recuerdo" aria-label="Date">${D.dosMates}</span>` : ''}
       <span class="foto">${tapaRecuerdo(p)}</span>
       <span class="pie">${esc(pie)}</span>
     </button>`;
   }).join('')}</div>`;
+}
+
+
+/* Para cuando vengas de visita: planes y dates */
+function pintarVuelta(cont, lista) {
+  const delfi = CONFIG.cumpleanera;
+  cont.innerHTML = `<div class="planes">${[...lista].sort((a, b) => a.fecha - b.fecha).map((p, j) => {
+      const quiere = p.corazones.some((n) => normal(n).startsWith(normal(delfi)));
+      return `<div class="plan ${quiere ? 'elegido' : ''}" style="transform:rotate(${j % 2 ? 1.2 : -1}deg)" data-id="${p.id}">
+        ${quiere ? `<span class="sello sello-plan">¡${esc(delfi)} quiere!</span>` : ''}
+        <div class="plan-titulo mano">${esc(p.titulo)}</div>
+        ${p.texto ? `<div class="plan-texto">${esc(p.texto)}</div>` : ''}
+        <div class="plan-pie">${avatar(p.autor)}<span class="chico">Propone ${esc(p.autor)}</span>${privado(p)}
+          ${soyDelfi() ? `<button class="corazon-plan ${quiere ? 'lleno' : ''}" data-plan="${p.id}" aria-label="${quiere ? 'Ya no' : 'Quiero'}">${quiere ? ICONOS.corazonLleno : ICONOS.corazon}</button>` : ''}
+          ${mismo(p.autor, yo.nombre) ? `<button class="borrar-post" data-borrar="${p.id}">Borrar</button>` : ''}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  cont.querySelectorAll('[data-plan]').forEach((b) => {
+    b.onclick = () => { const p = lista.find((x) => x.id === b.dataset.plan); const on = !b.classList.contains('lleno'); store.corazon(p.id, yo.nombre, on).catch(console.error); };
+  });
+  cont.querySelectorAll('[data-borrar]').forEach((b) => {
+    b.onclick = () => { if (confirm('¿Borrar este plan?')) store.borrar(b.dataset.borrar).catch(console.error); };
+  });
 }
 
 /* Un recuerdo abierto */
@@ -411,7 +441,7 @@ function miniHistoria(p) {
   else if (m?.tipo === 'video') { fondo = posterVideo(m) ? `background-image:url('${posterVideo(m)}')` : 'background:#3a2c1f'; dentro = `<span class="marca">${ICONOS.play}</span>`; }
   else if (m?.tipo === 'audio') { fondo = `background:${p.fondo || '#6E8B3D'}`; dentro = `<span class="marca">${ICONOS.audio}</span>`; }
   else { fondo = `background:${p.fondo || FONDOS[0]}`; dentro = `<span class="frase">${esc((p.texto || '').slice(0, 60))}</span>`; }
-  return `<button class="mini-historia ${visto(p) ? '' : 'sin-ver'}" style="${fondo}" data-ir="h/${p.id}/todas">${dentro}${p.paraDelfi ? `<span class="candado-mini">${CANDADO}</span>` : ''}<span class="quien">${esc(p.autor)} · ${hace(p.fecha)}</span></button>`;
+  return `<button class="mini-historia ${visto(p) ? '' : 'sin-ver'}" style="${fondo}" data-ir="h/${p.id}/todas">${dentro}${p.paraDelfi ? `<span class="candado-mini">${D.dosMates}</span>` : ''}<span class="quien">${esc(p.autor)} · ${hace(p.fecha)}</span></button>`;
 }
 function pintarDiario(cont, lista) {
   const porAutora = new Map();
@@ -640,11 +670,10 @@ function vistaNuevo(secId) {
       <h2 class="mano" style="margin:4px 0 20px">Contar algo</h2>
       <form class="form-nuevo" id="f" novalidate>
         <div class="campo"><label>¿Dónde va?</label><div class="chips">${SECCIONES.map((s) => `<button type="button" class="chip" data-sec="${s.id}" aria-pressed="${s.id === elegida}">${s.nombre}</button>`).join('')}</div></div>
-        <p class="ayuda" id="ayuda"></p>
-        <div class="campo" id="campo-titular"><label for="titular">Titular</label><input id="titular" placeholder="¡Me mudo a Córdoba!" maxlength="90"></div>
+        <div class="campo" id="campo-titular"><label for="titular" id="label-titular">Titular</label><input id="titular" placeholder="¡Me mudo a Córdoba!" maxlength="90"></div>
         <div class="campo"><label for="texto" id="label-texto">¿Qué querés contar?</label><textarea id="texto" placeholder="¿Te acordás cuando…?"></textarea></div>
         <div class="campo" id="campo-fondo"><label>Color de fondo</label><div class="fondos">${FONDOS.map((c, j) => `<button type="button" class="fondo" data-fondo="${c}" style="background:${c}" aria-label="Fondo ${j + 1}" aria-pressed="${j === 0}"></button>`).join('')}</div></div>
-        <div class="campo"><label id="label-sumale">Sumale cosas</label>
+        <div class="campo" id="campo-adjuntar"><label id="label-sumale">Sumale cosas</label>
           <div class="adjuntar">
             <label>${ICONOS.foto}Fotos o videos<input type="file" id="in-fotos" accept="image/*,video/*" multiple></label>
             <label>${ICONOS.audio}Subir audio<input type="file" id="in-audio" accept="audio/*,.opus,.ogg,.m4a,.mp3,.aac,.amr" multiple></label>
@@ -653,7 +682,7 @@ function vistaNuevo(secId) {
           <div class="adjuntos" id="adjuntos"></div>
         </div>
         <div class="campo" id="campo-frase"><label for="titulo">Una frase para la polaroid (si querés)</label><input id="titulo" placeholder="El viaje a Mendoza, 2019" maxlength="60"></div>
-        ${soyDelfi() ? '' : `<label class="privado-opcion"><input type="checkbox" id="privado"><span class="interruptor"></span><span>${CANDADO} Solo para ${esc(CONFIG.cumpleanera)}<small>Lo ven solo vos y ella. Si no lo marcás, lo ven todas.</small></span></label>`}
+        ${soyDelfi() ? '' : `<label class="privado-opcion"><input type="checkbox" id="privado"><span class="interruptor"></span><span><span class="titulo-opcion"><span class="icono-date">${D.dosMates}</span> Date con ${esc(CONFIG.cumpleanera)}</span><small>Lo ven solo vos y ella.</small></span></label>`}
         <p class="error" id="err" role="alert"></p>
         <button class="boton" id="publicar">Publicar</button>
       </form>
@@ -667,14 +696,17 @@ function vistaNuevo(secId) {
     melancolia: 'Un recuerdo de antes: sale como una polaroid pegada en la página.',
     diario: 'Como una historia de Instagram: una foto, un video, un audio o solo un texto con color de fondo.',
     actualizaciones: 'Un chisme: un titular, lo que quieras contar y una foto, un audio o un video.',
+    vuelta: 'Un plan para cuando venga de visita: un date, una cena, un paseo. Ella marca los que le dan ganas.',
   };
   const aplicar = () => {
-    document.getElementById('ayuda').textContent = elegida ? AYUDAS[elegida] : '';
-    mostrar('campo-titular', elegida === 'actualizaciones');
+    mostrar('campo-titular', elegida === 'actualizaciones' || elegida === 'vuelta');
+    mostrar('campo-adjuntar', elegida !== 'vuelta');
+    document.getElementById('label-titular').textContent = elegida === 'vuelta' ? '¿Qué plan le proponés?' : 'Titular';
+    f.titular.placeholder = elegida === 'vuelta' ? 'Date de café en Palermo' : '¡Me mudo a Córdoba!';
     mostrar('campo-frase', elegida === 'melancolia');
     mostrar('campo-fondo', elegida === 'diario');
-    document.getElementById('label-texto').textContent = elegida === 'diario' ? 'Texto (si querés)' : elegida === 'actualizaciones' ? 'Contanos más' : '¿Qué querés contar?';
-    f.texto.placeholder = elegida === 'diario' ? 'Hoy…' : elegida === 'actualizaciones' ? 'Les cuento todo…' : '¿Te acordás cuando…?';
+    document.getElementById('label-texto').textContent = elegida === 'diario' ? 'Texto (si querés)' : elegida === 'actualizaciones' ? 'Contanos más' : elegida === 'vuelta' ? 'Contale más (si querés)' : '¿Qué querés contar?';
+    f.texto.placeholder = elegida === 'diario' ? 'Hoy…' : elegida === 'actualizaciones' ? 'Les cuento todo…' : elegida === 'vuelta' ? 'Vos ponés la casa, nosotras el postre.' : '¿Te acordás cuando…?';
     document.getElementById('label-sumale').textContent = unaSola() ? 'Sumale una foto, un video o un audio' : 'Sumale cosas';
     document.getElementById('in-fotos').multiple = !unaSola();
     document.getElementById('in-audio').multiple = !unaSola();
@@ -750,10 +782,11 @@ function vistaNuevo(secId) {
     e.preventDefault();
     if (grabacion) { err.textContent = 'Primero pará la grabación.'; return; }
     const texto = f.texto.value.trim();
-    if (!elegida) { err.textContent = 'Elegí dónde va: Melancolía, Diario o Chismes.'; return; }
-    const titulo = elegida === 'actualizaciones' ? f.titular.value.trim() : elegida === 'melancolia' ? f.titulo.value.trim() : '';
+    if (!elegida) { err.textContent = 'Elegí dónde va.'; return; }
+    const titulo = (elegida === 'actualizaciones' || elegida === 'vuelta') ? f.titular.value.trim() : elegida === 'melancolia' ? f.titulo.value.trim() : '';
     if (elegida === 'actualizaciones' && !titulo) { err.textContent = 'Ponele un titular al chisme.'; return f.titular.focus(); }
-    if (!texto && !adjuntos.length) { err.textContent = 'Escribí algo o sumá una foto, un audio o un video.'; return f.texto.focus(); }
+    if (elegida === 'vuelta' && !titulo) { err.textContent = 'Escribí qué plan le proponés.'; return f.titular.focus(); }
+    if (!texto && !adjuntos.length && elegida !== 'vuelta') { err.textContent = 'Escribí algo o sumá una foto, un audio o un video.'; return f.texto.focus(); }
     if (unaSola() && adjuntos.length > 1) { err.textContent = 'Acá va una sola cosa: quitá las demás.'; return; }
     const btn = document.getElementById('publicar');
     btn.disabled = true;
@@ -806,7 +839,7 @@ function marcarEscuchado(id) {
 }
 const tieneAudio = (p) => p.media.some((m) => m.tipo === 'audio');
 const ajeno = (p) => !mismo(p.autor, yo.nombre);
-const sinVer = (p) => ajeno(p) && (tieneAudio(p) ? !escuchados.has(p.id) : !vistas.has(p.id));
+const sinVer = (p) => ajeno(p) && p.seccion !== 'vuelta' && (tieneAudio(p) ? !escuchados.has(p.id) : !vistas.has(p.id));
 const rutaDe = (p) => (p.seccion === 'diario' ? `h/${p.id}/todas` : `p/${p.id}`);
 
 let botonMate = null;
@@ -835,12 +868,12 @@ function abrirHoraDeMate() {
       <div class="hoja-dibujo">${D.mate}</div>
       <h2 class="mano">Hora de compartir un mate</h2>
       <button class="opcion-mate" data-op="cebar">
-        <b>Cebame algo</b>
-        <span>${nuevos ? `Algo al azar que todavía no viste. Te ${nuevos === 1 ? 'queda 1' : `quedan ${nuevos}`}.` : 'Ya viste todo. Te cebo uno de los de antes.'}</span>
+        <b>Calentá el agua</b>
+        <span>${nuevos ? `${nuevos} sin ver` : 'Uno de los de antes'}</span>
       </button>
       <button class="opcion-mate" data-op="paseo">
-        <b>Modo paseo</b>
-        <span>${audiosNuevos ? `Los audios que no escuchaste, uno atrás del otro, como un podcast. ${audiosNuevos === 1 ? 'Hay 1' : `Hay ${audiosNuevos}`}.` : (paseo.audio ? 'Volvé a lo que estabas escuchando.' : 'Ya escuchaste todos. Podés repasarlos.')}</span>
+        <b>Un mate juntas al sol</b>
+        <span>${audiosNuevos ? `${audiosNuevos} ${audiosNuevos === 1 ? 'audio nuevo' : 'audios nuevos'}` : (paseo.audio ? 'Seguir escuchando' : 'Repasar los audios')}</span>
       </button>
       <button class="link" data-op="cerrar">Ahora no</button>
     </div>`;
@@ -933,8 +966,7 @@ function vistaPaseo() {
     <main class="pantalla paseo">
       <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
       ${suelto(D.termo, 'top:70px;right:4%', 10, 28)}
-      <h2 class="mano">Modo paseo</h2>
-      <p class="chico">Ponete los auriculares y guardá el celu: sigue sonando con la pantalla bloqueada.</p>
+      <h2 class="mano">Un mate juntas al sol</h2>
       <div id="paseo"></div>
     </main>`);
   if (!paseo.fila.length) {
@@ -954,7 +986,7 @@ function pintarPaseo(termino = false) {
   const minutos = Math.round(paseo.fila.slice(paseo.i + 1).reduce((t, x) => t + (audioDe(x).dur || 0), 0) / 60);
   const fila = paseo.fila.map((x, j) => `<li class="${j === paseo.i ? 'actual' : ''} ${escuchados.has(x.id) ? 'escuchado' : ''}"><button data-paseo="${j}">${avatar(x.autor)}<span>${esc(x.titulo || (x.texto || '').slice(0, 40) || 'Audio')}<small>${esc(x.autor)}${audioDe(x).dur ? ` · ${mmss(audioDe(x).dur)}` : ''}</small></span></button></li>`).join('');
   caja.innerHTML = `
-    ${paseo.repaso ? '<p class="ayuda" style="margin:12px 0 0">Ya escuchaste todos: esto es un repaso.</p>' : ''}
+    ${paseo.repaso ? '<p class="chico" style="margin:12px 0 0">Repaso</p>' : ''}
     <div class="tarjeta-paseo polaroid">
       <div class="paseo-quien">${avatar(p.autor)}<div><b>Audio de ${esc(p.autor)}</b><div class="chico">${esc(seccion(p.seccion)?.nombre || '')} · ${hace(p.fecha)}</div></div>${privado(p)}</div>
       ${p.titulo ? `<div class="titulo-post">${esc(p.titulo)}</div>` : ''}

@@ -53,6 +53,57 @@ function ramita(semilla) {
   return `<svg viewBox="-6 -40 170 80" aria-hidden="true">${rama(r, 0, 10, -8, 150)}${rama(r, 60, 4, -40, 50, false)}</svg>`;
 }
 
+
+/* Personitas en acuarela: cabeza, pelo y cuerpo, sin contorno */
+function personita(x, y, { pelo, ropa, largo = false, giro = 0, piel = '#F1D3B8', escala = 1 }) {
+  return `<g transform="translate(${x} ${y}) rotate(${giro}) scale(${escala})">
+    ${largo ? `<path d="M-9 -4 C -11 6, -9 14, -6 16 L 6 16 C 9 14, 11 6, 9 -4 Z" fill="${pelo}" opacity="0.9"/>` : ''}
+    <path d="M-12 30 C -12 16, -7 12, 0 12 C 7 12, 12 16, 12 30 Z" fill="${ropa}" opacity="0.92"/>
+    <circle cx="0" cy="0" r="8.5" fill="${piel}"/>
+    <path d="M-8.8 -1 C -9 -9, -3 -11.5, 0 -11.5 C 4 -11.5, 9.5 -9, 8.8 -1 C 6 -6, -4 -7, -8.8 -1 Z" fill="${pelo}"/>
+    <circle cx="-3" cy="1" r="0.9" fill="#5B3A22"/><circle cx="3" cy="1" r="0.9" fill="#5B3A22"/>
+    <path d="M-2.6 4.4 q 2.6 2 5.2 0" fill="none" stroke="#B5533C" stroke-width="1" stroke-linecap="round"/>
+    <ellipse cx="-5" cy="3.6" rx="1.8" ry="1" fill="#E8836A" opacity="0.35"/><ellipse cx="5" cy="3.6" rx="1.8" ry="1" fill="#E8836A" opacity="0.35"/>
+  </g>`;
+}
+
+/* Las seis en la tribuna, viendo un partido: personitas chatas con pelo largo */
+function chata(x, y, pelo, ropa, colita = false) {
+  return `<g>
+    <path d="M${x - 6.2} ${y + 9} C ${x - 7.4} ${y + 2}, ${x - 6.6} ${y - 6.4}, ${x} ${y - 6.6} C ${x + 6.6} ${y - 6.4}, ${x + 7.4} ${y + 2}, ${x + 6.2} ${y + 9} Z" fill="${pelo}" opacity="0.95"/>
+    ${colita ? `<ellipse cx="${x + 6.4}" cy="${y - 3}" rx="2.4" ry="3.6" fill="${pelo}"/>` : ''}
+    <circle cx="${x}" cy="${y}" r="4.3" fill="#F1D3B8"/>
+    <path d="M${x - 4.6} ${y - 1} C ${x - 4} ${y - 5.6}, ${x + 4} ${y - 5.6}, ${x + 4.6} ${y - 1} C ${x + 2} ${y - 3.4}, ${x - 2} ${y - 3.4}, ${x - 4.6} ${y - 1} Z" fill="${pelo}"/>
+    <path d="M${x - 7} ${y + 13} Q ${x} ${y + 4} ${x + 7} ${y + 13} Z" fill="${ropa}" opacity="0.92"/>
+  </g>`;
+}
+
+function gradas() {
+  const chicas = [
+    ['#8B6A45', '#9DB5A0', false], // Niki
+    ['#B98B5A', '#C98B6E', true],  // Denu
+    ['#A57A4E', '#2F2A26', false], // Lupe
+    ['#B3643C', '#E07A2E', false], // Delfi
+    ['#3B2A20', '#E2A94B', false], // Cami
+    ['#6E4B32', '#B7A6C9', true],  // Sofi
+  ];
+  const y = 31;
+  const figuras = chicas.map(([pelo, ropa, colita], k) => chata(47 + k * 13.2, y + (k % 2 ? 0.6 : 0), pelo, ropa, colita)).join('');
+  return `<svg viewBox="0 0 160 90" aria-hidden="true">
+    <rect x="0" y="62" width="160" height="28" rx="4" fill="#7FA36B" opacity="0.75"/>
+    <path d="M0 76 H160" stroke="#F4EEDD" stroke-width="1.6" opacity="0.8"/>
+    <path d="M60 62 C 60 70, 100 70, 100 62" fill="none" stroke="#F4EEDD" stroke-width="1.4" opacity="0.7"/>
+    <rect x="6" y="44" width="148" height="9" rx="2" fill="#C9BFAE" opacity="0.9"/>
+    <rect x="14" y="33" width="132" height="9" rx="2" fill="#D8CFBF" opacity="0.9"/>
+    <rect x="22" y="22" width="116" height="9" rx="2" fill="#E4DCCD" opacity="0.9"/>
+    <rect x="6" y="53" width="148" height="9" fill="#B5AA97" opacity="0.6"/>
+    ${figuras}
+    <ellipse cx="${47 + 3 * 13.2 + 5.5}" cy="${y + 9}" rx="2.6" ry="3.1" fill="#E2A94B"/>
+    <path d="M${47 + 3 * 13.2 + 6.5} ${y + 6.5} L${47 + 3 * 13.2 + 8.5} ${y + 2.5}" stroke="#B9BEC4" stroke-width="1" stroke-linecap="round"/>
+    <path d="M150 66 L150 86 M150 66 L158 70 L150 74" stroke="#F4EEDD" stroke-width="1.4" fill="none"/>
+  </svg>`;
+}
+
 export const DIBUJOS = {
   esquina: esquina(7),
   esquina2: esquina(23),
@@ -98,6 +149,41 @@ export const DIBUJOS = {
     <path d="M26 50 l3 -3 l3 3 l-3 3 z M44 50 l3 -3 l3 3 l-3 3 z" fill="#E7A08A" opacity="0.7"/>
     <path d="M56 26 L58 40" stroke="#C9BFA9" stroke-width="1.2"/>
     <rect x="54" y="40" width="9" height="11" rx="1.5" fill="#E6C7A4" opacity="0.95"/>
+  </svg>`,
+
+  dosMates: `<svg viewBox="0 0 90 64" aria-hidden="true">
+    <defs>
+      <radialGradient id="dm-a" cx="0.38" cy="0.35" r="0.75"><stop offset="0" stop-color="#F3D27A"/><stop offset="1" stop-color="#D39338"/></radialGradient>
+      <radialGradient id="dm-b" cx="0.38" cy="0.35" r="0.75"><stop offset="0" stop-color="#C98B6E"/><stop offset="1" stop-color="#8E4630"/></radialGradient>
+    </defs>
+    <path d="M30 24 C 33 14, 38 7, 46 3" fill="none" stroke="#B9BEC4" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M62 24 C 59 14, 54 7, 46 3" fill="none" stroke="#B9BEC4" stroke-width="2.8" stroke-linecap="round"/>
+    <g transform="rotate(-8 26 42)"><path d="M8 28 C 4 44, 12 60, 26 60 C 40 60, 47 44, 43 28 C 36 22, 15 22, 8 28 Z" fill="url(#dm-a)"/><ellipse cx="25.5" cy="27" rx="17" ry="5" fill="#9DB46A"/></g>
+    <g transform="rotate(8 64 42)"><path d="M47 28 C 43 44, 51 60, 65 60 C 79 60, 86 44, 82 28 C 75 22, 54 22, 47 28 Z" fill="url(#dm-b)"/><ellipse cx="64.5" cy="27" rx="17" ry="5" fill="#9DB46A"/></g>
+    <path d="M45 46 C 41 41, 37 44, 41 48 L45 52 L49 48 C 53 44, 49 41, 45 46 Z" fill="#E8836A" opacity="0.85"/>
+  </svg>`,
+
+  gradas: gradas(),
+
+  compartir: `<svg viewBox="14 10 72 62" aria-hidden="true">
+    <defs><radialGradient id="cmp-mate" cx="0.38" cy="0.35" r="0.75"><stop offset="0" stop-color="#F3D27A"/><stop offset="1" stop-color="#D39338"/></radialGradient></defs>
+    ${personita(28, 40, { pelo: '#8B5E3C', ropa: '#9DB5A0', largo: true, giro: 6 })}
+    ${personita(72, 40, { pelo: '#3B2A20', ropa: '#E2A94B', largo: true, giro: -6 })}
+    <path d="M38 58 C 44 54, 50 54, 56 58" fill="none" stroke="#E8C9A8" stroke-width="5" stroke-linecap="round"/>
+    <path d="M56 46 C 58 40, 61 35, 66 32" fill="none" stroke="#B9BEC4" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M42 50 C 40 58, 44 66, 50 66 C 56 66, 60 58, 58 50 C 54 47, 46 47, 42 50 Z" fill="url(#cmp-mate)"/>
+    <ellipse cx="50" cy="50" rx="8" ry="2.6" fill="#9DB46A"/>
+    <path d="M50 18 C 47 14, 43 16, 46 19 L50 23 L54 19 C 57 16, 53 14, 50 18 Z" fill="#E8836A" opacity="0.8"/>
+  </svg>`,
+
+  guino: `<svg viewBox="0 0 40 40" aria-hidden="true">
+    <defs><radialGradient id="guino-cara" cx="0.38" cy="0.35" r="0.75"><stop offset="0" stop-color="#F8DE8E"/><stop offset="1" stop-color="#E2A94B"/></radialGradient></defs>
+    <circle cx="20" cy="20" r="17" fill="url(#guino-cara)"/>
+    <ellipse cx="14" cy="16" rx="2" ry="2.8" fill="#6B4416"/>
+    <path d="M23 16.5 q 3 -2.4 6 0" fill="none" stroke="#6B4416" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12 24 q 8 7 16 -1" fill="none" stroke="#6B4416" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="10" cy="23" rx="3" ry="1.8" fill="#E8836A" opacity="0.45"/>
+    <ellipse cx="30" cy="23" rx="3" ry="1.8" fill="#E8836A" opacity="0.45"/>
   </svg>`,
 
   imperial: `<svg viewBox="0 0 64 78" aria-hidden="true">
