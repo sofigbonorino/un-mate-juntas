@@ -187,7 +187,11 @@ function subirArchivo(file, tipo, alAvanzar) {
     fd.append('folder', 'un-mate-juntas');
     const x = new XMLHttpRequest();
     x.open('POST', `https://api.cloudinary.com/v1_1/${CONFIG.cloudinary.cloud}/auto/upload`);
-    x.upload.onprogress = (e) => e.lengthComputable && alAvanzar(e.loaded / e.total);
+    // Si en 2 minutos no avanza nada, se corta y se avisa
+    let ultimo = Date.now();
+    const vigia = setInterval(() => { if (Date.now() - ultimo > 120000) { x.abort(); clearInterval(vigia); rej(new Error('la subida se trabó. Revisá la conexión')); } }, 5000);
+    x.upload.onprogress = (e) => { ultimo = Date.now(); if (e.lengthComputable) alAvanzar(e.loaded / e.total); };
+    x.onloadend = () => clearInterval(vigia);
     x.onload = () => {
       let r = {};
       try { r = JSON.parse(x.responseText); } catch {}
@@ -857,11 +861,15 @@ function vistaNuevo(secId) {
     try {
       const media = [];
       for (const [i, a] of adjuntos.entries()) {
-        btn.textContent = adjuntos.length > 1 ? `Subiendo ${i + 1} de ${adjuntos.length}…` : 'Subiendo…';
+        const cual = adjuntos.length > 1 ? ` ${i + 1} de ${adjuntos.length}` : '';
         const barra = a.el.querySelector('.progreso i');
+        a.el.querySelector('.progreso').classList.add('trabajando');
+        if (a.tipo === 'foto') btn.textContent = `Preparando la foto${cual}…`;
         const archivo = a.tipo === 'foto' ? await achicarFoto(a.file) : a.file;
+        btn.textContent = `Subiendo${cual}…`;
         if (a.tipo === 'foto' && archivo.size > 10 * 1048576) throw new Error('la foto es muy pesada. Probá con otra o sacale una captura');
-        media.push(await subirArchivo(archivo, a.tipo, (x) => { barra.style.width = `${Math.round(x * 100)}%`; }));
+        media.push(await subirArchivo(archivo, a.tipo, (x) => { a.el.querySelector('.progreso').classList.remove('trabajando'); barra.style.width = `${Math.round(x * 100)}%`; btn.textContent = `Subiendo${cual}… ${Math.round(x * 100)}%`; }));
+        a.el.querySelector('.progreso').classList.remove('trabajando');
       }
       btn.textContent = 'Publicando…';
       const nuevo = { fecha: Date.now(), autor: yo.nombre, seccion: elegida, titulo, texto, media, corazones: [], respuestas: [] };
