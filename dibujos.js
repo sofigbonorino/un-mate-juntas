@@ -58,12 +58,27 @@ export const DIBUJOS = {
   esquina2: esquina(23),
   olivo: ramita(11),
 
-  mate: `<svg viewBox="0 0 64 74" aria-hidden="true">
-    <path d="M40 30 L50 4" stroke="#9A948A" stroke-width="3.2" stroke-linecap="round"/>
-    <circle cx="50.5" cy="4" r="2.6" fill="#C9C3B6" stroke="${T}" stroke-width="1.4"/>
-    <path d="M14 30 C 9 50, 19 68, 32 68 C 45 68, 55 50, 50 30 Z" fill="#C9A36B" ${linea}/>
-    <path d="M20 46 C 24 56, 34 60, 42 54" fill="none" stroke="#A9834B" stroke-width="2" stroke-linecap="round"/>
-    <ellipse cx="32" cy="30" rx="18" ry="4.6" fill="#6E8B3D" ${linea}/>
+  mate: `<svg viewBox="0 0 70 80" aria-hidden="true">
+    <defs>
+      <radialGradient id="mate-calabaza" cx="0.38" cy="0.35" r="0.75">
+        <stop offset="0" stop-color="#F3D27A"/><stop offset="0.55" stop-color="#E2A94B"/><stop offset="1" stop-color="#C98A2E"/>
+      </radialGradient>
+      <radialGradient id="mate-yerba" cx="0.5" cy="0.4" r="0.7">
+        <stop offset="0" stop-color="#C8D69A"/><stop offset="1" stop-color="#8FA65C"/>
+      </radialGradient>
+    </defs>
+    <path d="M42 30 C 46 18, 52 8, 64 4" fill="none" stroke="#B9BEC4" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M42 30 C 46 18, 52 8, 64 4" fill="none" stroke="#EEF1F3" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
+    <path d="M12 34 C 6 52, 16 74, 35 74 C 54 74, 64 52, 58 34 C 50 26, 20 26, 12 34 Z" fill="url(#mate-calabaza)"/>
+    <path d="M14 40 C 12 52, 18 64, 28 70" fill="none" stroke="#B87A22" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+    <ellipse cx="24" cy="44" rx="7" ry="4" fill="#FFF3CF" opacity="0.45"/>
+    <ellipse cx="35" cy="32" rx="22" ry="6.5" fill="url(#mate-yerba)"/>
+    <ellipse cx="29" cy="31" rx="7" ry="2.4" fill="#E4ECC6" opacity="0.7"/>
+    <path d="M25 48 q 2 -2.6 4 0" fill="none" stroke="#7A4A14" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M40 48 q 2 -2.6 4 0" fill="none" stroke="#7A4A14" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M28 56 q 6 6 12 0" fill="none" stroke="#7A4A14" stroke-width="1.9" stroke-linecap="round"/>
+    <ellipse cx="22" cy="54" rx="3.4" ry="2" fill="#E8836A" opacity="0.45"/>
+    <ellipse cx="47" cy="54" rx="3.4" ry="2" fill="#E8836A" opacity="0.45"/>
   </svg>`,
 
   imperial: `<svg viewBox="0 0 64 78" aria-hidden="true">
