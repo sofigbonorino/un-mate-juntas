@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20261111f';
-import { DIBUJOS as D } from './dibujos.js?v=20261111f';
+import { CONFIG } from './config.js?v=20261111g';
+import { DIBUJOS as D } from './dibujos.js?v=20261111g';
 
 const SECCIONES = [
   { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5, dibujo: 'escudo' },
