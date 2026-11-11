@@ -180,6 +180,7 @@ const ruta = () => location.hash.replace(/^#\/?/, '') || '';
 
 async function render() {
   window.scrollTo(0, 0);
+  cerrarVisor();
   const r = ruta();
   if (r === 'bienvenida' || (!yo.vioBienvenida && !yo.clave)) return vistaBienvenida();
   if (!yo.clave || !yo.nombre) return vistaEntrar();
@@ -195,6 +196,8 @@ async function render() {
     if (!ok) { guardar({ clave: null }); return vistaEntrar('Esa palabra secreta no funciona más.'); }
   }
   if (r.startsWith('s/') && seccion(r.slice(2))) return vistaSeccion(r.slice(2));
+  if (r.startsWith('p/')) return vistaPost(r.slice(2));
+  if (r.startsWith('h/')) return vistaHistoria(...r.slice(2).split('/'));
   if (r.startsWith('nuevo')) return vistaNuevo(r.split('/')[1]);
   return vistaInicio();
 }
@@ -287,26 +290,219 @@ function vistaInicio() {
 
 /* ---------- Sección ---------- */
 let seccionActual = null;
+let postActual = null;
+const BOTON_SUBIR = { melancolia: '+ Sumar recuerdo', diario: '+ Subir historia', actualizaciones: '+ Contar novedad' };
+const VACIO = {
+  melancolia: ['Todavía no hay recuerdos', 'Subí la primera foto de antes.'],
+  diario: ['Todavía no hay historias', 'Contá algo de tu día.'],
+  actualizaciones: ['Todavía no hay novedades', 'Contá la primera.'],
+};
+const deSeccion = (id) => posts.filter((p) => p.seccion === id);
+const vacio = (id) => `<div class="vacio"><div class="mano" style="font-size:26px">${VACIO[id][0]}</div><p style="margin:0">${VACIO[id][1]}</p><button class="boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id].slice(2)}</button></div>`;
+
 function vistaSeccion(id) {
   seccionActual = id;
+  postActual = null;
   const s = seccion(id);
   marco(`
     <main class="pantalla">
       <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
-      <div class="titulo-seccion"><h2 class="mano">${s.nombre}</h2><button class="boton claro" data-ir="nuevo/${id}" style="min-height:40px;padding:8px 16px;font-size:15px">+ Contar algo</button></div>
-      <div class="feed" id="feed">${cargado ? '' : '<div class="cargando">Trayendo las historias…</div>'}</div>
+      <div class="titulo-seccion"><h2 class="mano">${s.nombre}</h2><button class="boton claro chico-boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id]}</button></div>
+      <div id="contenido">${cargado ? '' : '<div class="cargando">Trayendo las historias…</div>'}</div>
     </main>`);
-  if (cargado) actualizarFeed();
+  if (cargado) pintarSeccion();
 }
 
-function actualizarFeed() {
+function pintarSeccion() {
+  const cont = document.getElementById('contenido');
+  if (!cont) return;
+  const lista = deSeccion(seccionActual);
+  if (!lista.length) { cont.innerHTML = vacio(seccionActual); return; }
+  if (seccionActual === 'melancolia') return pintarPared(cont, lista);
+  if (seccionActual === 'diario') return pintarDiario(cont, lista);
+  if (!cont.querySelector('.feed')) cont.innerHTML = '<div class="feed" id="feed"></div>';
+  actualizarFeed(lista);
+}
+
+/* Melancolía: polaroids cuadradas pegadas en la página */
+function hash(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function tapaRecuerdo(p) {
+  const foto = p.media.find((m) => m.tipo === 'foto');
+  const video = p.media.find((m) => m.tipo === 'video');
+  const audio = p.media.find((m) => m.tipo === 'audio');
+  if (foto) return `<img loading="lazy" src="${esc(urlFoto(foto, 600))}" alt="">`;
+  if (video && posterVideo(video)) return `<img loading="lazy" src="${esc(posterVideo(video))}" alt=""><span class="marca">${ICONOS.play}</span>`;
+  if (video) return `<span class="sin-foto">${ICONOS.video}</span>`;
+  if (audio) return `<span class="sin-foto">${ICONOS.audio}<small>Audio${audio.dur ? ` de ${mmss(audio.dur)}` : ''}</small></span>`;
+  return `<span class="sin-foto texto-tapa">${esc((p.texto || '').slice(0, 90))}${(p.texto || '').length > 90 ? '…' : ''}</span>`;
+}
+function pintarPared(cont, lista) {
+  cont.innerHTML = `<div class="pared">${lista.map((p) => {
+    const h = hash(p.id);
+    const giro = ((h % 70) / 10 - 3.5).toFixed(1);
+    const baja = (h >> 3) % 18;
+    const cinta = ((h >> 5) % 30) - 15;
+    const pie = p.titulo || (p.media.length ? (p.texto || '').split('\n')[0].slice(0, 40) : '') || '';
+    return `<button class="polaroid recuerdo" style="transform:rotate(${giro}deg);margin-top:${baja}px" data-ir="p/${p.id}">
+      <span class="cinta" style="transform:translateX(-50%) rotate(${cinta}deg)"></span>
+      ${esNuevo(p) ? '<span class="sello">Nuevo</span>' : ''}
+      <span class="foto">${tapaRecuerdo(p)}</span>
+      <span class="pie">${esc(pie)}</span>
+    </button>`;
+  }).join('')}</div>`;
+}
+
+/* Un recuerdo abierto */
+function vistaPost(id) {
+  seccionActual = null;
+  postActual = id;
+  const p = posts.find((x) => x.id === id);
+  const volverA = p ? `s/${p.seccion}` : '';
+  marco(`
+    <main class="pantalla">
+      <button class="link volver" data-ir="${volverA}">${ICONOS.flecha} Volver</button>
+      <div class="feed" id="feed">${cargado ? '' : '<div class="cargando">Trayendo el recuerdo…</div>'}</div>
+    </main>`);
+  if (cargado) pintarPostActual();
+}
+function pintarPostActual() {
+  const p = posts.find((x) => x.id === postActual);
   const feed = document.getElementById('feed');
   if (!feed) return;
-  const lista = posts.filter((p) => p.seccion === seccionActual);
-  if (!lista.length) {
-    feed.innerHTML = `<div class="vacio"><div class="mano" style="font-size:26px">Todavía no hay nada acá</div><p style="margin:0">Sé la primera en contar algo.</p><button class="boton" data-ir="nuevo/${seccionActual}">Contar algo</button></div>`;
-    return;
+  if (!p) { feed.innerHTML = '<div class="vacio"><div class="mano" style="font-size:26px">Este recuerdo ya no está</div></div>'; return; }
+  actualizarFeed([p]);
+}
+
+/* Diario: historias tipo Instagram */
+const LS_VISTAS = 'un-mate-juntas-vistas';
+let vistas;
+try { vistas = new Set(JSON.parse(localStorage.getItem(LS_VISTAS)) || []); } catch { vistas = new Set(); }
+function marcarVista(id) {
+  if (vistas.has(id)) return;
+  vistas.add(id);
+  try { localStorage.setItem(LS_VISTAS, JSON.stringify([...vistas])); } catch {}
+}
+const FONDOS = ['#B5533C', '#6E8B3D', '#5A4673', '#2F5E5E', '#C98A2B'];
+const visto = (p) => vistas.has(p.id) || mismo(p.autor, yo.nombre);
+function miniHistoria(p) {
+  const m = p.media[0];
+  let fondo = '', dentro = '';
+  if (m?.tipo === 'foto') fondo = `background-image:url('${urlFoto(m, 400)}')`;
+  else if (m?.tipo === 'video') { fondo = posterVideo(m) ? `background-image:url('${posterVideo(m)}')` : 'background:#3a2c1f'; dentro = `<span class="marca">${ICONOS.play}</span>`; }
+  else if (m?.tipo === 'audio') { fondo = `background:${p.fondo || '#6E8B3D'}`; dentro = `<span class="marca">${ICONOS.audio}</span>`; }
+  else { fondo = `background:${p.fondo || FONDOS[0]}`; dentro = `<span class="frase">${esc((p.texto || '').slice(0, 60))}</span>`; }
+  return `<button class="mini-historia ${visto(p) ? '' : 'sin-ver'}" style="${fondo}" data-ir="h/${p.id}/todas">${dentro}<span class="quien">${esc(p.autor)} · ${hace(p.fecha)}</span></button>`;
+}
+function pintarDiario(cont, lista) {
+  const porAutora = new Map();
+  for (const p of lista) {
+    const k = (p.autor || '').trim().toLowerCase();
+    if (!porAutora.has(k)) porAutora.set(k, []);
+    porAutora.get(k).push(p);
   }
+  const circulos = [...porAutora.values()].map((ps) => {
+    const crono = [...ps].sort((a, b) => a.fecha - b.fecha);
+    const primera = crono.find((p) => !visto(p)) || crono[0];
+    const sinVer = crono.some((p) => !visto(p));
+    return `<button class="circulo" data-ir="h/${primera.id}/autora">
+      <span class="anillo ${sinVer ? '' : 'visto'}">${avatar(ps[0].autor)}</span><span class="nombre-circulo">${esc(ps[0].autor)}</span></button>`;
+  }).join('');
+  cont.innerHTML = `<div class="circulos">${circulos}</div><div class="chico" style="margin:14px 0 8px">Todas las historias</div><div class="grilla-historias">${lista.map(miniHistoria).join('')}</div>`;
+}
+
+function listaHistorias(id, modo) {
+  const todas = deSeccion('diario');
+  if (modo !== 'autora') return todas;
+  const p = todas.find((x) => x.id === id);
+  return todas.filter((x) => mismo(x.autor, p?.autor)).sort((a, b) => a.fecha - b.fecha);
+}
+
+let visor = null;
+function cerrarVisor() { if (visor) { clearTimeout(visor.timer); cancelAnimationFrame(visor.raf); visor = null; } }
+function vistaHistoria(id, modo = 'todas') {
+  seccionActual = null;
+  postActual = null;
+  cerrarVisor();
+  if (!cargado) { $app.innerHTML = '<div class="cargando">Trayendo las historias…</div>'; visor = { esperando: [id, modo] }; return; }
+  const lista = listaHistorias(id, modo);
+  const i = lista.findIndex((p) => p.id === id);
+  if (i < 0) return ir('s/diario');
+  const p = lista[i];
+  marcarVista(p.id);
+  const m = p.media[0];
+  const barras = lista.length <= 15
+    ? `<div class="barras">${lista.map((x, j) => `<span><i style="width:${j < i ? 100 : 0}%"></i></span>`).join('')}</div>`
+    : `<div class="barras"><span><i></i></span></div><div class="contador">${i + 1} de ${lista.length}</div>`;
+  let cuerpo = '';
+  if (m?.tipo === 'foto') cuerpo = `<img class="media-historia" src="${esc(urlFoto(m, 1400))}" alt="">`;
+  else if (m?.tipo === 'video') cuerpo = `<video class="media-historia" playsinline autoplay ${posterVideo(m) ? `poster="${esc(posterVideo(m))}"` : ''}>${fuentesVideo(m).map((u) => `<source src="${esc(u)}">`).join('')}</video>`;
+  else if (m?.tipo === 'audio') cuerpo = `<div class="fondo-historia" style="background:${p.fondo || '#6E8B3D'}"><div class="audio audio-grande"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="auto">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div></div>`;
+  else cuerpo = `<div class="fondo-historia" style="background:${p.fondo || FONDOS[0]}"><div class="frase-grande">${esc(p.texto)}</div></div>`;
+  const leyenda = m && p.texto ? `<div class="leyenda">${esc(p.texto)}</div>` : '';
+  $app.innerHTML = `
+    <div class="visor" data-id="${p.id}">
+      ${barras}
+      <div class="visor-cabeza">${avatar(p.autor)}<b>${esc(p.autor)}</b><span>${hace(p.fecha)}</span><button class="cerrar" aria-label="Cerrar">×</button></div>
+      <div class="visor-cuerpo">${cuerpo}${leyenda}
+        <button class="zona zona-izq" aria-label="Anterior"></button><button class="zona zona-der" aria-label="Siguiente"></button>
+      </div>
+      <div class="visor-pie"><div class="pie-post"></div>
+        <form class="responder"><input placeholder="Responder a ${esc(p.autor)}…" aria-label="Responder" enterkeyhint="send"><button>Enviar</button></form>
+      </div>
+    </div>`;
+  const raiz = $app.querySelector('.visor');
+  const ir2 = (k) => {
+    const sig = lista[i + k];
+    if (sig) ir(`h/${sig.id}/${modo}`);
+    else if (k > 0) ir('s/diario');
+  };
+  raiz.querySelector('.cerrar').onclick = () => ir('s/diario');
+  raiz.querySelector('.zona-izq').onclick = () => ir2(-1);
+  raiz.querySelector('.zona-der').onclick = () => ir2(1);
+  pintarPie(raiz, p);
+  const inp = raiz.querySelector('.responder input');
+  raiz.querySelector('.responder').onsubmit = async (e) => {
+    e.preventDefault();
+    const texto = inp.value.trim();
+    if (!texto) return inp.focus();
+    inp.value = '';
+    try { await store.responder(p.id, { autor: yo.nombre, texto, fecha: Date.now() }); }
+    catch (err) { console.error(err); inp.value = texto; alert('No se pudo mandar. Probá de nuevo.'); }
+  };
+
+  const barra = raiz.querySelector(lista.length <= 15 ? `.barras span:nth-child(${i + 1}) i` : '.barras i');
+  visor = { id: p.id, pausa: false };
+  const v = visor;
+  inp.onfocus = () => { v.pausa = true; };
+  inp.onblur = () => { v.pausa = false; };
+  if (!m || m.tipo === 'foto') {
+    const DUR = 7000;
+    let pasado = 0, ult = performance.now();
+    const paso = (t) => {
+      if (visor !== v) return;
+      if (!v.pausa) pasado += t - ult;
+      ult = t;
+      barra.style.width = `${Math.min(100, (pasado / DUR) * 100)}%`;
+      if (pasado >= DUR) return ir2(1);
+      v.raf = requestAnimationFrame(paso);
+    };
+    v.raf = requestAnimationFrame(paso);
+  } else {
+    const el = raiz.querySelector(m.tipo === 'video' ? 'video' : 'audio');
+    if (m.tipo === 'audio') armarAudio(raiz.querySelector('.audio'));
+    el.addEventListener('timeupdate', () => { if (el.duration) barra.style.width = `${(el.currentTime / el.duration) * 100}%`; });
+    el.addEventListener('ended', () => { if (visor === v) ir2(1); });
+    if (m.tipo === 'video') {
+      el.play().catch(() => {});
+      raiz.querySelector('.visor-cuerpo').addEventListener('dblclick', () => (el.paused ? el.play() : el.pause()));
+    } else el.play().catch(() => {});
+  }
+}
+
+/* Feed de posteos (Actualizaciones y un recuerdo abierto) */
+function actualizarFeed(lista) {
+  const feed = document.getElementById('feed');
+  if (!feed) return;
   feed.querySelector('.vacio, .cargando')?.remove();
   const existentes = new Map([...feed.querySelectorAll(':scope > .post')].map((el) => [el.dataset.id, el]));
   let anterior = null;
@@ -328,14 +524,24 @@ function crearPost(p) {
   const fotos = p.media.filter((m) => m.tipo === 'foto');
   const audios = p.media.filter((m) => m.tipo === 'audio');
   const videos = p.media.filter((m) => m.tipo === 'video');
-  el.innerHTML = `
-    <div class="autor">${avatar(p.autor)}<div><div class="nombre">${esc(p.autor)}</div><div class="chico">${hace(p.fecha)}</div></div>${esNuevo(p) ? '<span class="nuevo">Nuevo</span>' : ''}</div>
-    ${fotos.length ? `<div class="fotos">${fotos.map((m) => `<div class="polaroid" data-ver="${esc(urlFoto(m, 2000))}"><div class="foto"><img loading="lazy" src="${esc(urlFoto(m))}" alt=""></div></div>`).join('')}</div>` : ''}
+  const nov = p.seccion === 'actualizaciones';
+  const nuevo = esNuevo(p) ? '<span class="nuevo">Nuevo</span>' : '';
+  const htmlFotos = fotos.length ? `<div class="fotos">${fotos.map((m) => `<div class="polaroid" data-ver="${esc(urlFoto(m, 2000))}"><div class="foto"><img loading="lazy" src="${esc(urlFoto(m))}" alt=""></div></div>`).join('')}</div>` : '';
+  const htmlAudios = audios.map((m) => `<div class="audio"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="metadata">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div>`).join('');
+  const htmlVideos = videos.map((m) => `<div class="video"><video controls playsinline preload="metadata" ${posterVideo(m) ? `poster="${esc(posterVideo(m))}"` : ''}>${fuentesVideo(m).map((u) => `<source src="${esc(u)}">`).join('')}</video></div>`).join('');
+  const htmlTexto = p.texto ? `<div class="texto">${esc(p.texto)}</div>` : '';
+  if (nov) el.classList.add('novedad');
+  el.innerHTML = (nov ? `
+    <div class="nov-top"><span class="etiqueta">Novedad</span><span class="chico">${new Date(p.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>${nuevo}</div>
+    <h3 class="titular">${esc(p.titulo || 'Novedad')}</h3>
+    <div class="chico contado">${avatar(p.autor)} Contado por ${esc(p.autor)}</div>
+    ${htmlFotos}${htmlVideos}${htmlAudios}${htmlTexto}
+    <div class="pie-post"></div>` : `
+    <div class="autor">${avatar(p.autor)}<div><div class="nombre">${esc(p.autor)}</div><div class="chico">${hace(p.fecha)}</div></div>${nuevo}</div>
+    ${htmlFotos}
     ${p.titulo ? `<div class="titulo-post">${esc(p.titulo)}</div>` : ''}
-    ${p.texto ? `<div class="texto">${esc(p.texto)}</div>` : ''}
-    ${audios.map((m) => `<div class="audio"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="metadata">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div>`).join('')}
-    ${videos.map((m) => `<div class="video"><video controls playsinline preload="metadata" ${posterVideo(m) ? `poster="${esc(posterVideo(m))}"` : ''}>${fuentesVideo(m).map((u) => `<source src="${esc(u)}">`).join('')}</video></div>`).join('')}
-    <div class="pie-post"></div>
+    ${htmlTexto}${htmlAudios}${htmlVideos}
+    <div class="pie-post"></div>`) + `
     <form class="responder"><input placeholder="Responder…" aria-label="Responder" enterkeyhint="send"><button>Enviar</button></form>`;
   el.querySelectorAll('.audio').forEach(armarAudio);
   pintarPie(el, p);
@@ -413,8 +619,11 @@ function vistaNuevo(secId) {
       <h2 class="mano" style="margin:4px 0 20px">Contar algo</h2>
       <form class="form-nuevo" id="f" novalidate>
         <div class="campo"><label>¿Dónde va?</label><div class="chips">${SECCIONES.map((s) => `<button type="button" class="chip" data-sec="${s.id}" aria-pressed="${s.id === elegida}">${s.nombre}</button>`).join('')}</div></div>
-        <div class="campo"><label for="texto">¿Qué querés contar?</label><textarea id="texto" placeholder="¿Te acordás cuando…?"></textarea></div>
-        <div class="campo"><label>Sumale cosas</label>
+        <p class="ayuda" id="ayuda"></p>
+        <div class="campo" id="campo-titular"><label for="titular">Titular</label><input id="titular" placeholder="¡Me mudo a Córdoba!" maxlength="90"></div>
+        <div class="campo"><label for="texto" id="label-texto">¿Qué querés contar?</label><textarea id="texto" placeholder="¿Te acordás cuando…?"></textarea></div>
+        <div class="campo" id="campo-fondo"><label>Color de fondo</label><div class="fondos">${FONDOS.map((c, j) => `<button type="button" class="fondo" data-fondo="${c}" style="background:${c}" aria-label="Fondo ${j + 1}" aria-pressed="${j === 0}"></button>`).join('')}</div></div>
+        <div class="campo"><label id="label-sumale">Sumale cosas</label>
           <div class="adjuntar">
             <label>${ICONOS.foto}Fotos o videos<input type="file" id="in-fotos" accept="image/*,video/*" multiple></label>
             <label>${ICONOS.audio}Subir audio<input type="file" id="in-audio" accept="audio/*,.opus,.ogg,.m4a,.mp3,.aac,.amr" multiple></label>
@@ -422,18 +631,43 @@ function vistaNuevo(secId) {
           </div>
           <div class="adjuntos" id="adjuntos"></div>
         </div>
-        <div class="campo"><label for="titulo">Una frase para la foto (si querés)</label><input id="titulo" placeholder="el viaje a Mendoza, 2019" maxlength="80"></div>
+        <div class="campo" id="campo-frase"><label for="titulo">Una frase para la polaroid (si querés)</label><input id="titulo" placeholder="El viaje a Mendoza, 2019" maxlength="60"></div>
         <p class="error" id="err" role="alert"></p>
         <button class="boton" id="publicar">Publicar</button>
       </form>
     </main>`);
   const f = document.getElementById('f'), err = document.getElementById('err'), lista = document.getElementById('adjuntos');
   document.getElementById('atras').onclick = () => ir(elegida ? `s/${elegida}` : '');
+  let fondo = FONDOS[0];
+  const unaSola = () => elegida === 'diario' || elegida === 'actualizaciones';
+  const mostrar = (id, si) => { document.getElementById(id).style.display = si ? '' : 'none'; };
+  const AYUDAS = {
+    melancolia: 'Un recuerdo de antes: sale como una polaroid pegada en la página.',
+    diario: 'Como una historia de Instagram: una foto, un video, un audio o solo un texto con color de fondo.',
+    actualizaciones: 'Una novedad: un titular, lo que quieras contar y una foto, un audio o un video.',
+  };
+  const aplicar = () => {
+    document.getElementById('ayuda').textContent = elegida ? AYUDAS[elegida] : '';
+    mostrar('campo-titular', elegida === 'actualizaciones');
+    mostrar('campo-frase', elegida === 'melancolia');
+    mostrar('campo-fondo', elegida === 'diario');
+    document.getElementById('label-texto').textContent = elegida === 'diario' ? 'Texto (si querés)' : elegida === 'actualizaciones' ? 'Contanos más' : '¿Qué querés contar?';
+    f.texto.placeholder = elegida === 'diario' ? 'Hoy…' : elegida === 'actualizaciones' ? 'Les cuento todo…' : '¿Te acordás cuando…?';
+    document.getElementById('label-sumale').textContent = unaSola() ? 'Sumale una foto, un video o un audio' : 'Sumale cosas';
+    document.getElementById('in-fotos').multiple = !unaSola();
+    document.getElementById('in-audio').multiple = !unaSola();
+  };
   f.querySelectorAll('.chip').forEach((c) => c.onclick = () => {
     elegida = c.dataset.sec;
     f.querySelectorAll('.chip').forEach((o) => o.setAttribute('aria-pressed', o === c));
     err.textContent = '';
+    aplicar();
   });
+  f.querySelectorAll('.fondo').forEach((b) => b.onclick = () => {
+    fondo = b.dataset.fondo;
+    f.querySelectorAll('.fondo').forEach((o) => o.setAttribute('aria-pressed', o === b));
+  });
+  aplicar();
   f.oninput = () => { err.textContent = ''; };
 
   const agregar = (file) => {
@@ -442,6 +676,7 @@ function vistaNuevo(secId) {
     const mb = file.size / 1048576;
     const max = tipo === 'foto' ? MAX_FOTO_MB : MAX_VIDEO_MB;
     if (mb > max) { err.textContent = `"${file.name}" pesa ${Math.round(mb)} MB y el máximo es ${max} MB.`; return; }
+    if (unaSola() && adjuntos.length) { adjuntos.pop().el.remove(); }
     const item = { file, tipo, el: document.createElement('div') };
     item.el.className = 'adjunto';
     const mini = tipo === 'foto' && file.type.startsWith('image/') && !/hei[cf]/i.test(file.type)
@@ -492,9 +727,12 @@ function vistaNuevo(secId) {
   f.onsubmit = async (e) => {
     e.preventDefault();
     if (grabacion) { err.textContent = 'Primero pará la grabación.'; return; }
-    const texto = f.texto.value.trim(), titulo = f.titulo.value.trim();
+    const texto = f.texto.value.trim();
     if (!elegida) { err.textContent = 'Elegí dónde va: Melancolía, Diario o Actualizaciones.'; return; }
+    const titulo = elegida === 'actualizaciones' ? f.titular.value.trim() : elegida === 'melancolia' ? f.titulo.value.trim() : '';
+    if (elegida === 'actualizaciones' && !titulo) { err.textContent = 'Ponele un titular a la novedad.'; return f.titular.focus(); }
     if (!texto && !adjuntos.length) { err.textContent = 'Escribí algo o sumá una foto, un audio o un video.'; return f.texto.focus(); }
+    if (unaSola() && adjuntos.length > 1) { err.textContent = 'Acá va una sola cosa: quitá las demás.'; return; }
     const btn = document.getElementById('publicar');
     btn.disabled = true;
     f.querySelectorAll('.quitar').forEach((b) => b.disabled = true);
@@ -506,7 +744,9 @@ function vistaNuevo(secId) {
         media.push(await subirArchivo(a.file, a.tipo, (x) => { barra.style.width = `${Math.round(x * 100)}%`; }));
       }
       btn.textContent = 'Publicando…';
-      await store.publicar({ fecha: Date.now(), autor: yo.nombre, seccion: elegida, titulo, texto, media, corazones: [], respuestas: [] });
+      const nuevo = { fecha: Date.now(), autor: yo.nombre, seccion: elegida, titulo, texto, media, corazones: [], respuestas: [] };
+      if (elegida === 'diario') nuevo.fondo = fondo;
+      await store.publicar(nuevo);
       ir(`s/${elegida}`);
     } catch (e2) {
       console.error(e2);
@@ -521,8 +761,14 @@ function vistaNuevo(secId) {
 /* ---------- Cuando llegan cosas nuevas ---------- */
 function alActualizar() {
   const r = ruta();
-  if (r.startsWith('s/')) actualizarFeed();
-  else if (r === '' && yo.clave) vistaInicio();
+  if (r.startsWith('s/')) pintarSeccion();
+  else if (r.startsWith('p/')) pintarPostActual();
+  else if (r.startsWith('h/')) {
+    if (visor?.esperando) return vistaHistoria(...visor.esperando);
+    const raiz = document.querySelector('.visor');
+    const p = raiz && posts.find((x) => x.id === raiz.dataset.id);
+    if (p) pintarPie(raiz, p);
+  } else if (r === '' && yo.clave) vistaInicio();
 }
 
 /* ---------- Clicks generales ---------- */
