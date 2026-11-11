@@ -660,6 +660,22 @@ function armarAudio(caja) {
   };
 }
 
+/* ---------- Lo que llega compartido desde otras apps (WhatsApp, galería) ---------- */
+async function cargarCompartidos(agregar, f) {
+  if (!('caches' in window)) return;
+  try {
+    const caja = await caches.open('un-mate-juntas-compartido');
+    for (const req of await caja.keys()) {
+      const res = await caja.match(req);
+      if (req.url.endsWith('compartido-texto')) { f.texto.value = await res.text(); continue; }
+      const blob = await res.blob();
+      const nombre = decodeURIComponent(res.headers.get('X-Nombre') || 'audio');
+      agregar(new File([blob], nombre, { type: blob.type || res.headers.get('Content-Type') || '' }));
+    }
+    await caches.delete('un-mate-juntas-compartido');
+  } catch (e) { console.error(e); }
+}
+
 /* ---------- Contar algo ---------- */
 let grabacion = null;
 function vistaNuevo(secId) {
@@ -740,10 +756,30 @@ function vistaNuevo(secId) {
       : `<div class="miniatura">${ICONOS[tipo]}</div>`;
     item.el.innerHTML = `${mini}<div class="nom">${esc(file.name)}<div class="progreso"><i></i></div></div><button type="button" class="quitar" aria-label="Quitar">×</button>`;
     item.el.querySelector('.quitar').onclick = () => { adjuntos.splice(adjuntos.indexOf(item), 1); item.el.remove(); };
+    // Escucharlo o verlo antes de publicar
+    if (tipo === 'audio') {
+      const caja = document.createElement('div');
+      caja.className = 'audio audio-previa';
+      caja.innerHTML = `<button type="button" class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">--:--</span><button type="button" class="vel" aria-label="Velocidad">1x</button><audio preload="metadata" src="${URL.createObjectURL(file)}"></audio>`;
+      item.el.append(caja);
+      armarAudio(caja);
+      caja.querySelector('audio').onerror = () => {
+        caja.innerHTML = '<span class="chico">Este celu no lo puede reproducir acá, pero una vez publicado se escucha bien.</span>';
+      };
+    } else if (tipo === 'video') {
+      const v = document.createElement('video');
+      v.className = 'video-previa';
+      v.controls = true;
+      v.playsInline = true;
+      v.preload = 'metadata';
+      v.src = URL.createObjectURL(file);
+      item.el.append(v);
+    }
     adjuntos.push(item);
     lista.append(item.el);
     err.textContent = '';
   };
+  if (secId === 'compartido') cargarCompartidos(agregar, f);
   ['in-fotos', 'in-audio'].forEach((id) => {
     const inp = document.getElementById(id);
     inp.onchange = () => { [...inp.files].forEach(agregar); inp.value = ''; };
@@ -1052,4 +1088,5 @@ document.addEventListener('click', (e) => {
 });
 window.addEventListener('pagehide', () => guardar({ ultimaVisita: Date.now() }));
 
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.error);
 render();

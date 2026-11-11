@@ -442,3 +442,9 @@ main.pantalla > h2.mano { text-align: center; }
 /* Melancolía sin papel madera: las polaroids sueltas sobre el fondo */
 .pared { background: none; box-shadow: none; padding: 18px 6px 24px; margin: 0; }
 .recuerdo .foto::before, .recuerdo .foto::after { background: linear-gradient(135deg, rgba(185, 160, 120, 0.75) 50%, transparent 50%); }
+
+/* Escuchar o ver antes de publicar */
+.adjunto { flex-wrap: wrap; }
+.adjunto .audio-previa { flex-basis: 100%; margin: 6px 0 2px; background: var(--papel); }
+.adjunto .audio-previa .play { width: 36px; height: 36px; }
+.adjunto .video-previa { flex-basis: 100%; max-height: 240px; border-radius: 8px; background: #000; margin-top: 6px; }
