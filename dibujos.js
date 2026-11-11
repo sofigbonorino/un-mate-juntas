@@ -1,4 +1,4 @@
-// Dibujitos a mano para decorar. Trazo color tinta, rellenos suaves.
+// Dibujitos estilo acuarela: sin contorno, degradés suaves y transparencias.
 const T = '#4A3A28';
 const linea = `stroke="${T}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
 
@@ -81,43 +81,82 @@ export const DIBUJOS = {
     <ellipse cx="47" cy="54" rx="3.4" ry="2" fill="#E8836A" opacity="0.45"/>
   </svg>`,
 
-  imperial: `<svg viewBox="0 0 64 78" aria-hidden="true">
-    <path d="M38 22 L48 2" stroke="#9A948A" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M16 26 C 14 46, 21 58, 32 58 C 43 58, 50 46, 48 26 Z" fill="#7A3424" ${linea}/>
-    <path d="M20 36 l4 4 m6 -4 l4 4 m6 -4 l4 4" stroke="#5C2418" stroke-width="1.6" stroke-linecap="round"/>
-    <rect x="13" y="20" width="38" height="8" rx="3" fill="#DDD7C9" ${linea}/>
-    <path d="M28 58 L27 66 L37 66 L36 58" fill="#DDD7C9" ${linea}/>
-    <ellipse cx="32" cy="69" rx="12" ry="4" fill="#DDD7C9" ${linea}/>
+  te: `<svg viewBox="0 0 80 74" aria-hidden="true">
+    <defs>
+      <linearGradient id="te-taza" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#FBF6EC"/><stop offset="1" stop-color="#DCCFB8"/>
+      </linearGradient>
+    </defs>
+    <path d="M30 4 C 26 10, 34 14, 30 20 M42 2 C 38 9, 46 13, 42 20" fill="none" stroke="#B9AFA0" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    <ellipse cx="38" cy="64" rx="30" ry="7" fill="#C9D8CE" opacity="0.85"/>
+    <ellipse cx="38" cy="63" rx="22" ry="4.2" fill="#E6EEE8" opacity="0.9"/>
+    <path d="M60 34 C 74 32, 74 52, 58 50" fill="none" stroke="#A9C1B2" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M14 28 C 14 50, 24 62, 38 62 C 52 62, 62 50, 62 28 Z" fill="url(#te-taza)"/>
+    <ellipse cx="38" cy="28" rx="24" ry="5.5" fill="#B9774A" opacity="0.85"/>
+    <ellipse cx="33" cy="27" rx="9" ry="2" fill="#D9A27A" opacity="0.7"/>
+    <path d="M18 40 C 22 44, 30 44, 34 40 C 38 44, 46 44, 50 40 C 54 44, 58 42, 59 40" fill="none" stroke="#9DB5A0" stroke-width="2.4" stroke-linecap="round" opacity="0.8"/>
+    <path d="M26 50 l3 -3 l3 3 l-3 3 z M44 50 l3 -3 l3 3 l-3 3 z" fill="#E7A08A" opacity="0.7"/>
+    <path d="M56 26 L58 40" stroke="#C9BFA9" stroke-width="1.2"/>
+    <rect x="54" y="40" width="9" height="11" rx="1.5" fill="#E6C7A4" opacity="0.95"/>
   </svg>`,
 
-  termo: `<svg viewBox="0 0 44 84" aria-hidden="true">
-    <rect x="11" y="4" width="20" height="12" rx="3" fill="#4E6328" ${linea}/>
-    <rect x="8" y="15" width="26" height="64" rx="6" fill="#7A9A4F" ${linea}/>
-    <path d="M34 26 C 42 28, 42 52, 34 54" fill="none" stroke="${T}" stroke-width="2.6" stroke-linecap="round"/>
-    <rect x="13" y="38" width="16" height="10" rx="2" fill="#E9E2CF" stroke="${T}" stroke-width="1.4"/>
+  imperial: `<svg viewBox="0 0 64 78" aria-hidden="true">
+    <defs>
+      <radialGradient id="imp-cuero" cx="0.35" cy="0.35" r="0.8"><stop offset="0" stop-color="#B8674A"/><stop offset="0.6" stop-color="#8E4630"/><stop offset="1" stop-color="#6E3222"/></radialGradient>
+      <linearGradient id="imp-plata" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C9CED3"/><stop offset="0.45" stop-color="#F2F4F5"/><stop offset="1" stop-color="#AEB4BA"/></linearGradient>
+    </defs>
+    <path d="M38 22 C 41 14, 44 7, 50 2" fill="none" stroke="#B9BEC4" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M16 26 C 14 46, 21 58, 32 58 C 43 58, 50 46, 48 26 Z" fill="url(#imp-cuero)"/>
+    <ellipse cx="25" cy="38" rx="4" ry="7" fill="#E0A487" opacity="0.35"/>
+    <path d="M20 44 q 4 3 8 0 q 4 3 8 0 q 4 3 8 0" fill="none" stroke="#5E2A1C" stroke-width="1.3" stroke-linecap="round" opacity="0.55"/>
+    <rect x="13" y="20" width="38" height="8" rx="3.5" fill="url(#imp-plata)"/>
+    <ellipse cx="32" cy="21" rx="17" ry="3" fill="#8FA65C" opacity="0.9"/>
+    <path d="M28 58 L27 66 L37 66 L36 58 Z" fill="url(#imp-plata)"/>
+    <ellipse cx="32" cy="69" rx="12" ry="4" fill="url(#imp-plata)"/>
+  </svg>`,
+
+  termo: `<svg viewBox="0 0 48 84" aria-hidden="true">
+    <defs>
+      <linearGradient id="termo-cuerpo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6F9067"/><stop offset="0.4" stop-color="#9DBA93"/><stop offset="1" stop-color="#5E7F58"/></linearGradient>
+    </defs>
+    <path d="M35 26 C 45 28, 45 52, 35 54" fill="none" stroke="#7E9C77" stroke-width="3.6" stroke-linecap="round" opacity="0.9"/>
+    <rect x="12" y="4" width="20" height="12" rx="4" fill="#5E7F58" opacity="0.95"/>
+    <rect x="9" y="15" width="26" height="64" rx="7" fill="url(#termo-cuerpo)"/>
+    <rect x="13" y="20" width="5" height="50" rx="2.5" fill="#E8F0E4" opacity="0.35"/>
+    <rect x="14" y="38" width="16" height="10" rx="2.5" fill="#F4EEDD" opacity="0.85"/>
   </svg>`,
 
   palo: `<svg viewBox="0 0 76 84" aria-hidden="true">
-    <path d="M54 4 L26 64" stroke="${T}" stroke-width="5" stroke-linecap="round"/>
-    <path d="M51 10 L45 23" stroke="#B5533C" stroke-width="7" stroke-linecap="round"/>
-    <path d="M26 64 C 21 76, 7 78, 5 69" fill="none" stroke="${T}" stroke-width="6.5" stroke-linecap="round"/>
-    <circle cx="58" cy="72" r="7" fill="#FFFDF8" ${linea}/>
-    <path d="M53 70 C 56 68, 60 68, 63 71" fill="none" stroke="#C9C3B6" stroke-width="1.4"/>
+    <defs>
+      <linearGradient id="palo-madera" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C6A5A"/><stop offset="1" stop-color="#4F4136"/></linearGradient>
+      <radialGradient id="palo-bocha" cx="0.35" cy="0.35" r="0.8"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4DCCB"/></radialGradient>
+    </defs>
+    <path d="M54 4 L26 64" stroke="url(#palo-madera)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M51 10 L45 23" stroke="#E2A94B" stroke-width="7.5" stroke-linecap="round" opacity="0.95"/>
+    <path d="M26 64 C 21 76, 7 78, 5 69" fill="none" stroke="#5E4E41" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="58" cy="73" rx="8" ry="2.4" fill="#C9D8CE" opacity="0.7"/>
+    <circle cx="58" cy="68" r="7" fill="url(#palo-bocha)"/>
+    <path d="M53 66 C 56 64, 60 64, 63 67" fill="none" stroke="#CFC6B4" stroke-width="1.2" opacity="0.8"/>
   </svg>`,
 
   escudo: `<svg viewBox="0 0 54 64" aria-hidden="true">
-    <defs><clipPath id="clip-escudo"><path d="M27 4 L49 11 C 49 36, 40 51, 27 60 C 14 51, 5 36, 5 11 Z"/></clipPath></defs>
+    <defs>
+      <clipPath id="clip-escudo"><path d="M27 4 C 35 7, 42 9, 49 10 C 49 36, 40 51, 27 60 C 14 51, 5 36, 5 10 C 12 9, 19 7, 27 4 Z"/></clipPath>
+      <linearGradient id="esc-luz" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.35"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+    </defs>
     <g clip-path="url(#clip-escudo)">
-      <rect x="0" y="0" width="54" height="64" fill="#FFFDF8"/>
-      <g transform="rotate(-35 27 32)">
-        <rect x="-20" y="10" width="100" height="8" fill="#D2691E"/>
-        <rect x="-20" y="22" width="100" height="8" fill="#2B2118"/>
-        <rect x="-20" y="34" width="100" height="8" fill="#D2691E"/>
-        <rect x="-20" y="46" width="100" height="8" fill="#2B2118"/>
+      <g transform="rotate(32 27 32)">
+        <rect x="-40" y="-40" width="58" height="144" fill="#2F2A26"/>
+        <rect x="18" y="-40" width="18" height="144" fill="#E07A2E"/>
+        <rect x="36" y="-40" width="58" height="144" fill="#2F2A26"/>
       </g>
+      <rect x="0" y="0" width="54" height="64" fill="url(#esc-luz)"/>
     </g>
-    <path d="M27 4 L49 11 C 49 36, 40 51, 27 60 C 14 51, 5 36, 5 11 Z" fill="none" stroke="${T}" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M27 4 C 35 7, 42 9, 49 10 C 49 36, 40 51, 27 60 C 14 51, 5 36, 5 10 C 12 9, 19 7, 27 4 Z" fill="none" stroke="#3B332C" stroke-width="1.4" opacity="0.45"/>
   </svg>`,
 
-  corazon: `<svg viewBox="0 0 30 28" aria-hidden="true"><path d="M15 25 C 6 19, 2 13, 3 8 C 4 3, 11 2, 15 8 C 19 2, 26 3, 27 8 C 28 13, 24 19, 15 25 Z" fill="#E7A08A" stroke="${T}" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  corazon: `<svg viewBox="0 0 30 28" aria-hidden="true">
+    <defs><radialGradient id="cora" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#F6C2B0"/><stop offset="1" stop-color="#E08A70"/></radialGradient></defs>
+    <path d="M15 25 C 6 19, 2 13, 3 8 C 4 3, 11 2, 15 8 C 19 2, 26 3, 27 8 C 28 13, 24 19, 15 25 Z" fill="url(#cora)" opacity="0.9"/>
+  </svg>`,
 };

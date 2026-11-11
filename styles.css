@@ -338,3 +338,18 @@ svg { overflow: visible; }
 .olivo-abajo svg { bottom: -6px; right: -6px; left: auto; top: auto; transform: rotate(180deg); }
 .deco-olivo { width: 170px; opacity: 1; }
 .pared-olivo { width: 150px; top: -22px; left: -18px; transform: rotate(-8deg); }
+.deco-fila svg { width: 44px; height: 46px; }
+.deco-fila svg:nth-child(2) { width: 44px; transform: none; }
+.bienvenida .deco-fila svg { width: 44px; height: 48px; }
+.bienvenida .deco-fila svg:nth-child(3) { width: 24px; }
+
+/* Dibujitos sueltos, dispersos por la pantalla */
+#app > main { position: relative; }
+.suelto { position: absolute; pointer-events: none; z-index: 0; opacity: 0.95; }
+.suelto svg { width: 100%; height: auto; display: block; }
+main > *:not(.suelto) { position: relative; z-index: 1; }
+.deco-solo { width: 60px; margin: 0 auto; }
+.deco-solo svg { width: 100%; height: auto; }
+.chico-boton { white-space: nowrap; flex: none; }
+.titulo-seccion h2 { min-width: 0; }
+.titulo-seccion h2.mano { font-size: clamp(23px, 7vw, 32px); }

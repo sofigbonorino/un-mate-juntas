@@ -217,6 +217,8 @@ async function conectar(clave) {
   return true;
 }
 
+const suelto = (svg, donde, giro, ancho) => `<span class="suelto" aria-hidden="true" style="${donde};width:${ancho}px;transform:rotate(${giro}deg)">${svg}</span>`;
+
 function marco(html) {
   $app.innerHTML = (MODO_PRUEBA ? '<div class="aviso-prueba">Modo prueba: lo que subas queda solo en este celular</div>' : '')
     + `<div class="fondo-deco" aria-hidden="true"><span class="olivo-arriba">${D.esquina}</span><span class="olivo-abajo">${D.esquina2}</span></div>` + html;
@@ -234,7 +236,7 @@ function vistaBienvenida() {
       <p class="aparece" ${d(1.8)}>Acá te vamos a ir dejando historias, fotos y audios largos, de esos que se escuchan como un podcast. Entrá cuando quieras: siempre va a haber algo nuevo.</p>
       <p class="aparece" ${d(2.4)}>Hay tres rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día y <b>Actualizaciones</b> para las novedades. Y vos también podés contarnos cosas.</p>
       <div class="firma aparece" ${d(3)}>${esc(CONFIG.firma)}</div>
-      <div class="deco-fila aparece" ${d(3.2)}>${D.mate}${D.corazon}${D.palo}</div>
+      ${suelto(D.mate, "top:150px;right:2%", 12, 52)}${suelto(D.corazon, "bottom:150px;left:12%", -10, 26)}
       <button class="boton aparece" ${d(3.4)} id="seguir">Entrar</button>
     </main>`);
   document.getElementById('seguir').onclick = () => { guardar({ vioBienvenida: true }); ir(yo.clave ? '' : 'entrar'); };
@@ -244,6 +246,7 @@ function vistaBienvenida() {
 function vistaEntrar(msg = '') {
   marco(`
     <main class="pantalla entrar">
+      ${suelto(D.te, "top:28px;right:4%", 8, 54)}
       <h1 class="mano">Un mate juntas</h1>
       <p class="chico centro">Esto es solo para nosotras. Pedile la palabra secreta a las chicas.</p>
       <form id="f" novalidate>
@@ -290,7 +293,7 @@ function vistaInicio() {
   }).join('');
   marco(`
     <main class="pantalla">
-      <header class="cabecera"><div class="deco-fila deco-arriba">${D.imperial}${D.termo}</div><h1 class="mano">Un mate juntas</h1><div class="chico">Hola, ${esc(yo.nombre)}</div></header>
+      <header class="cabecera"><h1 class="mano">Un mate juntas</h1><div class="chico">Hola, ${esc(yo.nombre)}</div></header>
       <div class="secciones">${tarjetas}</div>
       <div class="contar"><button class="boton punteado" data-ir="nuevo">+ Contar algo</button></div>
       <div class="pie-pagina"><div class="deco-olivo">${D.olivo}</div><button class="link" data-ir="bienvenida">Ver la bienvenida otra vez</button></div>
@@ -306,8 +309,12 @@ const VACIO = {
   diario: ['Todavía no hay historias', 'Contá algo de tu día.'],
   actualizaciones: ['Todavía no hay novedades', 'Contá la primera.'],
 };
+const SUELTO_SECCION = {
+  diario: [D.termo, 'top:120px;right:3%', 8, 26],
+  actualizaciones: [D.te, 'bottom:30px;left:2%', -8, 54],
+};
 const deSeccion = (id) => posts.filter((p) => p.seccion === id);
-const vacio = (id) => `<div class="vacio"><div class="deco-fila">${D.imperial}${D.termo}</div><div class="mano" style="font-size:26px">${VACIO[id][0]}</div><p style="margin:0">${VACIO[id][1]}</p><button class="boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id].slice(2)}</button></div>`;
+const vacio = (id) => `<div class="vacio"><div class="mano" style="font-size:26px">${VACIO[id][0]}</div><p style="margin:0">${VACIO[id][1]}</p><button class="boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id].slice(2)}</button></div>`;
 
 function vistaSeccion(id) {
   seccionActual = id;
@@ -317,6 +324,7 @@ function vistaSeccion(id) {
     <main class="pantalla">
       <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
       <div class="titulo-seccion"><h2 class="mano con-dibujo"><span class="dibujo-titulo">${D[s.dibujo]}</span>${s.nombre}</h2><button class="boton claro chico-boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id]}</button></div>
+      ${SUELTO_SECCION[id] ? suelto(...SUELTO_SECCION[id]) : ''}
       <div id="contenido">${cargado ? '' : '<div class="cargando">Trayendo las historias…</div>'}</div>
     </main>`);
   if (cargado) pintarSeccion();
@@ -346,7 +354,7 @@ function tapaRecuerdo(p) {
   return `<span class="sin-foto texto-tapa">${esc((p.texto || '').slice(0, 90))}${(p.texto || '').length > 90 ? '…' : ''}</span>`;
 }
 function pintarPared(cont, lista) {
-  cont.innerHTML = `<div class="pared"><span class="pared-olivo" aria-hidden="true">${D.olivo}</span><span class="pared-mate" aria-hidden="true">${D.mate}</span>${lista.map((p) => {
+  cont.innerHTML = `<div class="pared"><span class="pared-olivo" aria-hidden="true">${D.olivo}</span><span class="pared-mate" aria-hidden="true">${D.imperial}</span>${lista.map((p) => {
     const h = hash(p.id);
     const giro = ((h % 70) / 10 - 3.5).toFixed(1);
     const baja = (h >> 3) % 18;
