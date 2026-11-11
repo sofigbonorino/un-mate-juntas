@@ -219,7 +219,7 @@ function vistaBienvenida() {
   marco(`
     <main class="pantalla bienvenida">
       <div class="polaroid aparece" ${d(0.1)}><div class="foto">${foto}</div><div class="pie">${esc(CONFIG.pieFotoBienvenida)}</div></div>
-      <h1 class="mano aparece" ${d(0.6)}>Feliz cumple, ${esc(CONFIG.cumpleanera)}</h1>
+      <h1 class="mano aparece" ${d(0.6)}>¡Feliz cumple, ${esc(CONFIG.cumpleanera)}!</h1>
       <p class="aparece" ${d(1.2)}>Como no podemos tomarnos un mate todos los días, te armamos este lugar.</p>
       <p class="aparece" ${d(1.8)}>Acá te vamos a ir dejando historias, fotos y audios largos, de esos que se escuchan como un podcast. Entrá cuando quieras: siempre va a haber algo nuevo.</p>
       <p class="aparece" ${d(2.4)}>Hay tres rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día y <b>Actualizaciones</b> para las novedades. Y vos también podés contarnos cosas.</p>

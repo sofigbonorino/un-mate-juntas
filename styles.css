@@ -73,7 +73,7 @@ h2.mano { font-size: 34px; margin: 0; }
 .bienvenida .polaroid { width: min(300px, 82vw); transform: rotate(-3deg); }
 .bienvenida .polaroid .foto { aspect-ratio: 3 / 4; }
 .bienvenida .polaroid .foto:has(svg) { aspect-ratio: 1; }
-.bienvenida .polaroid .pie { font-size: 19px; line-height: 1.15; padding: 6px 4px 2px; }
+.bienvenida .polaroid .pie { white-space: pre-line; font-size: 19px; line-height: 1.15; padding: 6px 4px 2px; }
 .bienvenida .polaroid .foto img { width: 100%; height: 100%; object-fit: cover; }
 .bienvenida p { margin: 0; color: var(--tinta-2); max-width: 420px; }
 .bienvenida .firma { font-family: var(--mano); font-size: 26px; color: var(--tinta); }
