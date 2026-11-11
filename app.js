@@ -1089,4 +1089,6 @@ document.addEventListener('click', (e) => {
 window.addEventListener('pagehide', () => guardar({ ultimaVisita: Date.now() }));
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.error);
+// Cada vez que se abre la web (o la app del inicio) arranca por la bienvenida
+if (!ruta()) history.replaceState(null, '', '#bienvenida');
 render();
