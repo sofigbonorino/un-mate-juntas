@@ -25,6 +25,11 @@ guardar({ ultimaVisita: Date.now() });
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const seccion = (id) => SECCIONES.find((s) => s.id === id);
 const mismo = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+const normal = (s) => (s || '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const soyDelfi = () => normal(yo.nombre).startsWith(normal(CONFIG.cumpleanera));
+const puedoVer = (p) => !p.paraDelfi || soyDelfi() || mismo(p.autor, yo.nombre);
+const CANDADO = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const privado =(p) => (p.paraDelfi ? `<span class="privado-tag">${CANDADO} ${soyDelfi() ? 'Solo para vos' : 'Solo para ' + esc(CONFIG.cumpleanera)}</span>` : '');
 
 function hace(t) {
   const min = (Date.now() - t) / 60000;
@@ -207,7 +212,7 @@ async function conectar(clave) {
   const s = await crearStore(clave);
   if (!(await s.probar())) return false;
   store = s;
-  store.escuchar((lista) => { posts = lista; cargado = true; alActualizar(); });
+  store.escuchar((lista) => { posts = lista.filter(puedoVer); cargado = true; alActualizar(); });
   return true;
 }
 
@@ -345,7 +350,7 @@ function pintarPared(cont, lista) {
     const pie = p.titulo || (p.media.length ? (p.texto || '').split('\n')[0].slice(0, 40) : '') || '';
     return `<button class="polaroid recuerdo" style="transform:rotate(${giro}deg);margin-top:${baja}px" data-ir="p/${p.id}">
       <span class="cinta" style="transform:translateX(-50%) rotate(${cinta}deg)"></span>
-      ${esNuevo(p) ? '<span class="sello">Nuevo</span>' : ''}
+      ${esNuevo(p) ? '<span class="sello">Nuevo</span>' : ''}${p.paraDelfi ? `<span class="candado-recuerdo" aria-label="Privado">${CANDADO}</span>` : ''}
       <span class="foto">${tapaRecuerdo(p)}</span>
       <span class="pie">${esc(pie)}</span>
     </button>`;
@@ -391,7 +396,7 @@ function miniHistoria(p) {
   else if (m?.tipo === 'video') { fondo = posterVideo(m) ? `background-image:url('${posterVideo(m)}')` : 'background:#3a2c1f'; dentro = `<span class="marca">${ICONOS.play}</span>`; }
   else if (m?.tipo === 'audio') { fondo = `background:${p.fondo || '#6E8B3D'}`; dentro = `<span class="marca">${ICONOS.audio}</span>`; }
   else { fondo = `background:${p.fondo || FONDOS[0]}`; dentro = `<span class="frase">${esc((p.texto || '').slice(0, 60))}</span>`; }
-  return `<button class="mini-historia ${visto(p) ? '' : 'sin-ver'}" style="${fondo}" data-ir="h/${p.id}/todas">${dentro}<span class="quien">${esc(p.autor)} · ${hace(p.fecha)}</span></button>`;
+  return `<button class="mini-historia ${visto(p) ? '' : 'sin-ver'}" style="${fondo}" data-ir="h/${p.id}/todas">${dentro}${p.paraDelfi ? `<span class="candado-mini">${CANDADO}</span>` : ''}<span class="quien">${esc(p.autor)} · ${hace(p.fecha)}</span></button>`;
 }
 function pintarDiario(cont, lista) {
   const porAutora = new Map();
@@ -442,7 +447,7 @@ function vistaHistoria(id, modo = 'todas') {
   $app.innerHTML = `
     <div class="visor" data-id="${p.id}">
       ${barras}
-      <div class="visor-cabeza">${avatar(p.autor)}<b>${esc(p.autor)}</b><span>${hace(p.fecha)}</span><button class="cerrar" aria-label="Cerrar">×</button></div>
+      <div class="visor-cabeza">${avatar(p.autor)}<b>${esc(p.autor)}</b><span>${hace(p.fecha)}</span>${privado(p)}<button class="cerrar" aria-label="Cerrar">×</button></div>
       <div class="visor-cuerpo">${cuerpo}${leyenda}
         <button class="zona zona-izq" aria-label="Anterior"></button><button class="zona zona-der" aria-label="Siguiente"></button>
       </div>
@@ -532,12 +537,12 @@ function crearPost(p) {
   const htmlTexto = p.texto ? `<div class="texto">${esc(p.texto)}</div>` : '';
   if (nov) el.classList.add('novedad');
   el.innerHTML = (nov ? `
-    <div class="nov-top"><span class="etiqueta">Novedad</span><span class="chico">${new Date(p.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>${nuevo}</div>
+    <div class="nov-top"><span class="etiqueta">Novedad</span><span class="chico">${new Date(p.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>${privado(p)}${nuevo}</div>
     <h3 class="titular">${esc(p.titulo || 'Novedad')}</h3>
     <div class="chico contado">${avatar(p.autor)} Contado por ${esc(p.autor)}</div>
     ${htmlFotos}${htmlVideos}${htmlAudios}${htmlTexto}
     <div class="pie-post"></div>` : `
-    <div class="autor">${avatar(p.autor)}<div><div class="nombre">${esc(p.autor)}</div><div class="chico">${hace(p.fecha)}</div></div>${nuevo}</div>
+    <div class="autor">${avatar(p.autor)}<div><div class="nombre">${esc(p.autor)}</div><div class="chico">${hace(p.fecha)}</div></div>${privado(p)}${nuevo}</div>
     ${htmlFotos}
     ${p.titulo ? `<div class="titulo-post">${esc(p.titulo)}</div>` : ''}
     ${htmlTexto}${htmlAudios}${htmlVideos}
@@ -632,6 +637,7 @@ function vistaNuevo(secId) {
           <div class="adjuntos" id="adjuntos"></div>
         </div>
         <div class="campo" id="campo-frase"><label for="titulo">Una frase para la polaroid (si querés)</label><input id="titulo" placeholder="El viaje a Mendoza, 2019" maxlength="60"></div>
+        ${soyDelfi() ? '' : `<label class="privado-opcion"><input type="checkbox" id="privado"><span class="interruptor"></span><span>${CANDADO} Solo para ${esc(CONFIG.cumpleanera)}<small>Lo ven solo vos y ella. Si no lo marcás, lo ven todas.</small></span></label>`}
         <p class="error" id="err" role="alert"></p>
         <button class="boton" id="publicar">Publicar</button>
       </form>
@@ -746,6 +752,7 @@ function vistaNuevo(secId) {
       btn.textContent = 'Publicando…';
       const nuevo = { fecha: Date.now(), autor: yo.nombre, seccion: elegida, titulo, texto, media, corazones: [], respuestas: [] };
       if (elegida === 'diario') nuevo.fondo = fondo;
+      if (f.privado?.checked) nuevo.paraDelfi = true;
       await store.publicar(nuevo);
       ir(`s/${elegida}`);
     } catch (e2) {

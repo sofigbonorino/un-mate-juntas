@@ -287,3 +287,21 @@ h2.mano { font-size: 32px; margin: 0; }
 .fondos { display: flex; gap: 10px; }
 .fondo { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--papel); box-shadow: 0 0 0 1px var(--borde); cursor: pointer; }
 .fondo[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--tinta); }
+
+/* Solo para Delfi */
+.privado-tag { display: inline-flex; align-items: center; gap: 4px; background: #E5DCEC; color: #5A4673; font-size: 13px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.post .autor .privado-tag { margin-left: auto; }
+.post .autor .privado-tag + .nuevo { margin-left: 6px; }
+.visor-cabeza .privado-tag { background: rgba(229, 220, 236, 0.9); }
+.candado-recuerdo { position: absolute; top: 12px; right: 12px; z-index: 3; background: #E5DCEC; color: #5A4673; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.candado-mini { position: absolute; top: 6px; right: 6px; background: rgba(229, 220, 236, 0.95); color: #5A4673; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.privado-opcion { display: flex; align-items: center; gap: 12px; background: var(--papel-claro); border: 1px solid var(--borde); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+.privado-opcion input { position: absolute; opacity: 0; pointer-events: none; }
+.privado-opcion > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.privado-opcion > span:last-child svg { display: inline; vertical-align: -1px; }
+.privado-opcion small { font-size: 13px; color: var(--tinta-2); }
+.interruptor { flex: none; width: 44px; height: 26px; border-radius: 999px; background: var(--borde); position: relative; transition: background 0.2s; }
+.interruptor::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.privado-opcion input:checked + .interruptor { background: #5A4673; }
+.privado-opcion input:checked + .interruptor::after { transform: translateX(18px); }
+.privado-opcion input:focus-visible + .interruptor { outline: 2px solid var(--suave); outline-offset: 2px; }
