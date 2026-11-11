@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js';
-import { DIBUJOS as D } from './dibujos.js';
+import { CONFIG } from './config.js?v=20261111d';
+import { DIBUJOS as D } from './dibujos.js?v=20261111d';
 
 const SECCIONES = [
   { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5, dibujo: 'escudo' },
@@ -109,6 +109,7 @@ function storePrueba(clave) {
       avisar();
     },
     async borrar(id) { lista = lista.filter((p) => p.id !== id); avisar(); },
+    async reportar(o) { console.warn('Error', o); },
   };
 }
 
@@ -133,6 +134,7 @@ async function storeFirebase(clave) {
     responder: (id, r) => fs.updateDoc(doc(id), { respuestas: fs.arrayUnion(r) }),
     corazon: (id, nombre, on) => fs.updateDoc(doc(id), { corazones: on ? fs.arrayUnion(nombre) : fs.arrayRemove(nombre) }),
     borrar: (id) => fs.deleteDoc(doc(id)),
+    reportar: (o) => fs.addDoc(fs.collection(db, 'grupos', clave, 'errores'), o),
   };
 }
 
@@ -198,7 +200,7 @@ function subirArchivo(file, tipo, alAvanzar) {
       if (x.status >= 300) return rej(new Error(r.error?.message || 'No se pudo subir'));
       res({ tipo, id: r.public_id, url: r.secure_url, ancho: r.width || null, alto: r.height || null, dur: r.duration || null });
     };
-    x.onerror = () => rej(new Error('Sin conexión'));
+    x.onerror = () => rej(Object.assign(new Error('no se pudo mandar el archivo'), { detalle: { status: x.status, estado: x.readyState, tam: file.size, tipo: file.type } }));
     x.send(fd);
   });
 }
@@ -689,6 +691,20 @@ function armarAudio(caja) {
   };
 }
 
+function reportarError(donde, e, archivos = []) {
+  try {
+    store?.reportar?.({
+      donde,
+      mensaje: String(e?.message || e),
+      detalle: e?.detalle || null,
+      archivos: archivos.map((f) => ({ nombre: f?.name || '', tipo: f?.type || '', tam: f?.size || 0 })),
+      navegador: navigator.userAgent,
+      autor: yo.nombre || '',
+      fecha: Date.now(),
+    }).catch(() => {});
+  } catch {}
+}
+
 /* ---------- Lo que llega compartido desde otras apps (WhatsApp, galería) ---------- */
 async function cargarCompartidos(agregar, f) {
   if (!('caches' in window)) return;
@@ -771,7 +787,19 @@ function vistaNuevo(secId) {
   aplicar();
   f.oninput = () => { err.textContent = ''; };
 
-  const agregar = (file) => {
+  const agregar = async (original) => {
+    let file = original;
+    if (!(original instanceof File && original.__enMemoria)) {
+      try {
+        const datos = await original.arrayBuffer();
+        file = new File([datos], original.name || 'archivo', { type: original.type || '', lastModified: Date.now() });
+        file.__enMemoria = true;
+      } catch (e) {
+        err.textContent = `No pude leer "${original.name || 'ese archivo'}". Probá elegirlo de nuevo, o guardalo otra vez en el celu.`;
+        reportarError('leer', e, [original]);
+        return;
+      }
+    }
     const tipo = tipoDe(file);
     if (!tipo) { err.textContent = `"${file.name}" no es una foto, un audio ni un video.`; return; }
     const mb = file.size / 1048576;
@@ -879,7 +907,8 @@ function vistaNuevo(secId) {
       ir(`s/${elegida}`);
     } catch (e2) {
       console.error(e2);
-      err.textContent = `No se pudo publicar (${e2.message}). Revisá la conexión y probá de nuevo.`;
+      reportarError('publicar', e2, adjuntos.map((a) => a.file));
+      err.textContent = `No se pudo publicar: ${e2.message}. Probá de nuevo en un ratito.`;
       btn.disabled = false;
       btn.textContent = 'Publicar';
       f.querySelectorAll('.quitar').forEach((b) => b.disabled = false);
