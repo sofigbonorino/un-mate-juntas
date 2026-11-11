@@ -6,7 +6,7 @@ export const CONFIG = {
   firma: 'Tus amigas',
 
   // Foto de la bienvenida (opcional). Por ejemplo 'bienvenida.jpg' dentro de esta carpeta.
-  fotoBienvenida: 'bienvenida.jpg',
+  fotoBienvenida: 'bienvenida.jpg?v=2',
   pieFotoBienvenida: 'Nosotras en Copenhague\n(en nuestros sueños, por ahora)',
 
   // Firestore: se pega acá la configuración de la app web de Firebase.
