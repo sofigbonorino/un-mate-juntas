@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20261111d';
-import { DIBUJOS as D } from './dibujos.js?v=20261111d';
+import { CONFIG } from './config.js?v=20261111e';
+import { DIBUJOS as D } from './dibujos.js?v=20261111e';
 
 const SECCIONES = [
   { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5, dibujo: 'escudo' },
@@ -863,7 +863,7 @@ function vistaNuevo(secId) {
         btnGrabar.querySelector('span').textContent = 'Grabar';
         const tipoMime = rec.mimeType || 'audio/webm';
         const ext = tipoMime.includes('mp4') ? 'm4a' : tipoMime.includes('ogg') ? 'ogg' : 'webm';
-        const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
         agregar(new File(partes, `Audio grabado ${hora}.${ext}`, { type: tipoMime }));
       };
       rec.start(1000);
