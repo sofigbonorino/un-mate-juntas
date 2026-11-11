@@ -305,3 +305,29 @@ h2.mano { font-size: 32px; margin: 0; }
 .privado-opcion input:checked + .interruptor { background: #5A4673; }
 .privado-opcion input:checked + .interruptor::after { transform: translateX(18px); }
 .privado-opcion input:focus-visible + .interruptor { outline: 2px solid var(--suave); outline-offset: 2px; }
+
+/* Dibujitos */
+svg { overflow: visible; }
+.fondo-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.fondo-deco svg { position: absolute; width: 210px; opacity: 0.32; }
+.olivo-arriba svg { top: -14px; right: -40px; transform: rotate(-18deg) scaleX(-1); }
+.olivo-abajo svg { bottom: 10px; left: -50px; transform: rotate(14deg); }
+#app > main, #app > .aviso-prueba { position: relative; z-index: 1; }
+.deco-fila { display: flex; justify-content: center; align-items: flex-end; gap: 14px; }
+.deco-fila svg { width: 40px; height: 48px; }
+.deco-fila svg:nth-child(2) { width: 30px; transform: rotate(6deg); }
+.deco-arriba { margin-bottom: 4px; }
+.deco-arriba svg:first-child { transform: rotate(-8deg); }
+.bienvenida .deco-fila svg { width: 44px; height: 50px; }
+.bienvenida .deco-fila svg:nth-child(2) { width: 26px; }
+.tarjeta-seccion { padding-right: 76px; }
+.deco-tarjeta { position: absolute; right: 14px; top: 50%; transform: translateY(-50%) rotate(8deg); width: 50px; height: 58px; display: flex; align-items: center; justify-content: center; }
+.deco-tarjeta svg { width: 100%; height: 100%; }
+.con-dibujo { display: flex; align-items: center; gap: 8px; }
+.dibujo-titulo { width: 34px; height: 40px; display: inline-flex; flex: none; transform: rotate(-6deg); }
+.dibujo-titulo svg { width: 100%; height: 100%; }
+.deco-olivo { width: 150px; margin: 0 auto 6px; opacity: 0.8; }
+.vacio .deco-fila svg { width: 54px; height: 64px; }
+.pared { position: relative; }
+.pared-olivo { position: absolute; top: -18px; left: -26px; width: 130px; transform: rotate(-12deg); z-index: 3; pointer-events: none; }
+.pared-mate { position: absolute; bottom: -20px; right: -10px; width: 52px; transform: rotate(12deg); z-index: 3; pointer-events: none; }

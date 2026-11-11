@@ -1,9 +1,10 @@
 import { CONFIG } from './config.js';
+import { DIBUJOS as D } from './dibujos.js';
 
 const SECCIONES = [
-  { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5 },
-  { id: 'diario', nombre: 'Diario', bajada: 'Lo que nos pasa en el día a día', giro: 1 },
-  { id: 'actualizaciones', nombre: 'Actualizaciones', bajada: 'Las novedades importantes', giro: -0.5 },
+  { id: 'melancolia', nombre: 'Melancolía', bajada: 'Fotos y recuerdos de antes', giro: -1.5, dibujo: 'escudo' },
+  { id: 'diario', nombre: 'Diario', bajada: 'Lo que nos pasa en el día a día', giro: 1, dibujo: 'mate' },
+  { id: 'actualizaciones', nombre: 'Actualizaciones', bajada: 'Las novedades importantes', giro: -0.5, dibujo: 'palo' },
 ];
 const MODO_PRUEBA = !CONFIG.firebase;
 const MAX_VIDEO_MB = 100;
@@ -217,7 +218,8 @@ async function conectar(clave) {
 }
 
 function marco(html) {
-  $app.innerHTML = (MODO_PRUEBA ? '<div class="aviso-prueba">Modo prueba: lo que subas queda solo en este celular</div>' : '') + html;
+  $app.innerHTML = (MODO_PRUEBA ? '<div class="aviso-prueba">Modo prueba: lo que subas queda solo en este celular</div>' : '')
+    + `<div class="fondo-deco" aria-hidden="true"><span class="olivo-arriba">${D.olivo}</span><span class="olivo-abajo">${D.olivo}</span></div>` + html;
 }
 
 /* ---------- Bienvenida ---------- */
@@ -232,6 +234,7 @@ function vistaBienvenida() {
       <p class="aparece" ${d(1.8)}>Acá te vamos a ir dejando historias, fotos y audios largos, de esos que se escuchan como un podcast. Entrá cuando quieras: siempre va a haber algo nuevo.</p>
       <p class="aparece" ${d(2.4)}>Hay tres rincones: <b>Melancolía</b> para los recuerdos, <b>Diario</b> para el día a día y <b>Actualizaciones</b> para las novedades. Y vos también podés contarnos cosas.</p>
       <div class="firma aparece" ${d(3)}>${esc(CONFIG.firma)}</div>
+      <div class="deco-fila aparece" ${d(3.2)}>${D.mate}${D.corazon}${D.palo}</div>
       <button class="boton aparece" ${d(3.4)} id="seguir">Entrar</button>
     </main>`);
   document.getElementById('seguir').onclick = () => { guardar({ vioBienvenida: true }); ir(yo.clave ? '' : 'entrar'); };
@@ -280,16 +283,17 @@ function vistaInicio() {
     const cuantas = deEsta.length ? `${deEsta.length} ${deEsta.length === 1 ? 'historia' : 'historias'}` : 'Todavía vacía';
     return `<button class="polaroid tarjeta-seccion" style="transform:rotate(${s.giro}deg)" data-ir="s/${s.id}">
       ${nuevos ? `<span class="sello">${nuevos} ${nuevos === 1 ? 'nueva' : 'nuevas'}</span>` : ''}
+      <span class="deco-tarjeta">${D[s.dibujo]}</span>
       <span class="mano">${s.nombre}</span>
       <span class="chico">${s.bajada} · ${cargado ? cuantas : '…'}</span>
     </button>`;
   }).join('');
   marco(`
     <main class="pantalla">
-      <header class="cabecera"><h1 class="mano">Un mate juntas</h1><div class="chico">Hola, ${esc(yo.nombre)}</div></header>
+      <header class="cabecera"><div class="deco-fila deco-arriba">${D.imperial}${D.termo}</div><h1 class="mano">Un mate juntas</h1><div class="chico">Hola, ${esc(yo.nombre)}</div></header>
       <div class="secciones">${tarjetas}</div>
       <div class="contar"><button class="boton punteado" data-ir="nuevo">+ Contar algo</button></div>
-      <div class="pie-pagina"><button class="link" data-ir="bienvenida">Ver la bienvenida otra vez</button></div>
+      <div class="pie-pagina"><div class="deco-olivo">${D.olivo}</div><button class="link" data-ir="bienvenida">Ver la bienvenida otra vez</button></div>
     </main>`);
 }
 
@@ -303,7 +307,7 @@ const VACIO = {
   actualizaciones: ['Todavía no hay novedades', 'Contá la primera.'],
 };
 const deSeccion = (id) => posts.filter((p) => p.seccion === id);
-const vacio = (id) => `<div class="vacio"><div class="mano" style="font-size:26px">${VACIO[id][0]}</div><p style="margin:0">${VACIO[id][1]}</p><button class="boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id].slice(2)}</button></div>`;
+const vacio = (id) => `<div class="vacio"><div class="deco-fila">${D.imperial}${D.termo}</div><div class="mano" style="font-size:26px">${VACIO[id][0]}</div><p style="margin:0">${VACIO[id][1]}</p><button class="boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id].slice(2)}</button></div>`;
 
 function vistaSeccion(id) {
   seccionActual = id;
@@ -312,7 +316,7 @@ function vistaSeccion(id) {
   marco(`
     <main class="pantalla">
       <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
-      <div class="titulo-seccion"><h2 class="mano">${s.nombre}</h2><button class="boton claro chico-boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id]}</button></div>
+      <div class="titulo-seccion"><h2 class="mano con-dibujo"><span class="dibujo-titulo">${D[s.dibujo]}</span>${s.nombre}</h2><button class="boton claro chico-boton" data-ir="nuevo/${id}">${BOTON_SUBIR[id]}</button></div>
       <div id="contenido">${cargado ? '' : '<div class="cargando">Trayendo las historias…</div>'}</div>
     </main>`);
   if (cargado) pintarSeccion();
@@ -342,7 +346,7 @@ function tapaRecuerdo(p) {
   return `<span class="sin-foto texto-tapa">${esc((p.texto || '').slice(0, 90))}${(p.texto || '').length > 90 ? '…' : ''}</span>`;
 }
 function pintarPared(cont, lista) {
-  cont.innerHTML = `<div class="pared">${lista.map((p) => {
+  cont.innerHTML = `<div class="pared"><span class="pared-olivo" aria-hidden="true">${D.olivo}</span><span class="pared-mate" aria-hidden="true">${D.mate}</span>${lista.map((p) => {
     const h = hash(p.id);
     const giro = ((h % 70) / 10 - 3.5).toFixed(1);
     const baja = (h >> 3) % 18;
