@@ -353,3 +353,42 @@ main > *:not(.suelto) { position: relative; z-index: 1; }
 .chico-boton { white-space: nowrap; flex: none; }
 .titulo-seccion h2 { min-width: 0; }
 .titulo-seccion h2.mano { font-size: clamp(23px, 7vw, 32px); }
+
+/* Botón del mate */
+.boton-mate { position: fixed; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 15; width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--borde); background: var(--papel-claro); box-shadow: 0 4px 14px rgba(74, 58, 40, 0.22); padding: 8px; cursor: pointer; }
+.boton-mate svg { width: 100%; height: 100%; }
+.boton-mate:active { transform: scale(0.95); }
+.boton-mate.sonando::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid #8FAE9A; animation: latido 1.6s ease-in-out infinite; }
+@keyframes latido { 50% { transform: scale(1.08); opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { .boton-mate.sonando::after { animation: none; } }
+.capa-mate { position: fixed; inset: 0; z-index: 30; background: rgba(46, 34, 22, 0.45); display: flex; align-items: flex-end; justify-content: center; }
+.hoja-mate { width: 100%; max-width: 560px; background: var(--papel); border-radius: 22px 22px 0 0; padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; text-align: center; animation: subir 0.25s ease-out; }
+@keyframes subir { from { transform: translateY(40px); opacity: 0; } }
+.hoja-dibujo { width: 64px; margin: -54px auto 0; background: var(--papel); border-radius: 50%; padding: 8px; }
+.hoja-mate h2 { margin: 0 0 4px; font-size: 28px; }
+.opcion-mate { text-align: left; background: var(--papel-claro); border: 1px solid var(--borde); border-radius: 14px; padding: 14px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+.opcion-mate b { font-family: var(--mano); font-weight: 400; font-size: 22px; }
+.opcion-mate span { font-size: 15px; color: var(--tinta-2); }
+
+/* Modo paseo */
+.paseo h2 { margin: 4px 0 4px; }
+.tarjeta-paseo { padding: 16px; margin-top: 16px; }
+.paseo-quien { display: flex; align-items: center; gap: 10px; text-align: left; }
+.paseo-quien .privado-tag { margin-left: auto; }
+.paseo-texto { max-height: 7.5em; overflow: hidden; }
+.paseo-barra { height: 30px; display: flex; align-items: center; cursor: pointer; touch-action: none; margin-top: 14px; }
+.paseo-barra span { display: block; width: 100%; height: 5px; background: var(--borde); border-radius: 3px; position: relative; }
+.paseo-barra i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #7C9C8A; border-radius: 3px; }
+.paseo-tiempos { display: flex; justify-content: space-between; font-size: 13px; color: var(--tinta-2); font-variant-numeric: tabular-nums; }
+.paseo-controles { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0 8px; }
+.paseo-btn { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--borde); background: var(--papel); cursor: pointer; font-size: 15px; }
+.paseo-btn[disabled] { opacity: 0.35; }
+.paseo-play { width: 68px; height: 68px; border-radius: 50%; border: 0; background: var(--tinta); color: var(--papel-claro); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.paseo-play svg { width: 26px; height: 26px; }
+.paseo-pie { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.fila-paseo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fila-paseo button { width: 100%; display: flex; align-items: center; gap: 10px; background: var(--papel-claro); border: 1px solid var(--borde); border-radius: 12px; padding: 8px 10px; cursor: pointer; text-align: left; }
+.fila-paseo button > span { display: flex; flex-direction: column; min-width: 0; }
+.fila-paseo small { font-size: 13px; color: var(--tinta-2); }
+.fila-paseo .actual button { border-color: #7C9C8A; box-shadow: 0 0 0 1px #7C9C8A; }
+.fila-paseo .escuchado:not(.actual) button { opacity: 0.6; }

@@ -187,6 +187,7 @@ const ruta = () => location.hash.replace(/^#\/?/, '') || '';
 async function render() {
   window.scrollTo(0, 0);
   cerrarVisor();
+  actualizarBotonMate();
   const r = ruta();
   if (r === 'bienvenida' || (!yo.vioBienvenida && !yo.clave)) return vistaBienvenida();
   if (!yo.clave || !yo.nombre) return vistaEntrar();
@@ -204,6 +205,7 @@ async function render() {
   if (r.startsWith('s/') && seccion(r.slice(2))) return vistaSeccion(r.slice(2));
   if (r.startsWith('p/')) return vistaPost(r.slice(2));
   if (r.startsWith('h/')) return vistaHistoria(...r.slice(2).split('/'));
+  if (r === 'paseo') return vistaPaseo();
   if (r.startsWith('nuevo')) return vistaNuevo(r.split('/')[1]);
   return vistaInicio();
 }
@@ -373,6 +375,7 @@ function pintarPared(cont, lista) {
 function vistaPost(id) {
   seccionActual = null;
   postActual = id;
+  marcarVista(id);
   const p = posts.find((x) => x.id === id);
   const volverA = p ? `s/${p.seccion}` : '';
   marco(`
@@ -453,7 +456,7 @@ function vistaHistoria(id, modo = 'todas') {
   let cuerpo = '';
   if (m?.tipo === 'foto') cuerpo = `<img class="media-historia" src="${esc(urlFoto(m, 1400))}" alt="">`;
   else if (m?.tipo === 'video') cuerpo = `<video class="media-historia" playsinline autoplay ${posterVideo(m) ? `poster="${esc(posterVideo(m))}"` : ''}>${fuentesVideo(m).map((u) => `<source src="${esc(u)}">`).join('')}</video>`;
-  else if (m?.tipo === 'audio') cuerpo = `<div class="fondo-historia" style="background:${p.fondo || '#6E8B3D'}"><div class="audio audio-grande"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="auto">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div></div>`;
+  else if (m?.tipo === 'audio') cuerpo = `<div class="fondo-historia" style="background:${p.fondo || '#6E8B3D'}"><div class="audio audio-grande" data-post="${p.id}"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="auto">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div></div>`;
   else cuerpo = `<div class="fondo-historia" style="background:${p.fondo || FONDOS[0]}"><div class="frase-grande">${esc(p.texto)}</div></div>`;
   const leyenda = m && p.texto ? `<div class="leyenda">${esc(p.texto)}</div>` : '';
   $app.innerHTML = `
@@ -526,7 +529,7 @@ function actualizarFeed(lista) {
   for (const p of lista) {
     let el = existentes.get(p.id);
     if (el) { existentes.delete(p.id); pintarPie(el, p); }
-    else { el = crearPost(p); }
+    else { el = crearPost(p); marcarVista(p.id); }
     const enSuLugar = anterior ? anterior.nextElementSibling === el : feed.firstElementChild === el;
     if (!enSuLugar) feed.insertBefore(el, anterior ? anterior.nextElementSibling : feed.firstElementChild);
     anterior = el;
@@ -544,7 +547,7 @@ function crearPost(p) {
   const nov = p.seccion === 'actualizaciones';
   const nuevo = esNuevo(p) ? '<span class="nuevo">Nuevo</span>' : '';
   const htmlFotos = fotos.length ? `<div class="fotos">${fotos.map((m) => `<div class="polaroid" data-ver="${esc(urlFoto(m, 2000))}"><div class="foto"><img loading="lazy" src="${esc(urlFoto(m))}" alt=""></div></div>`).join('')}</div>` : '';
-  const htmlAudios = audios.map((m) => `<div class="audio"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="metadata">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div>`).join('');
+  const htmlAudios = audios.map((m) => `<div class="audio" data-post="${p.id}"><button class="play" aria-label="Escuchar">${ICONOS.play}</button><div class="barra"><span><i></i></span></div><span class="tiempo">${m.dur ? mmss(m.dur) : '--:--'}</span><button class="vel" aria-label="Velocidad">1x</button><audio preload="metadata">${fuentesAudio(m).map((u) => `<source src="${esc(u)}">`).join('')}</audio></div>`).join('');
   const htmlVideos = videos.map((m) => `<div class="video"><video controls playsinline preload="metadata" ${posterVideo(m) ? `poster="${esc(posterVideo(m))}"` : ''}>${fuentesVideo(m).map((u) => `<source src="${esc(u)}">`).join('')}</video></div>`).join('');
   const htmlTexto = p.texto ? `<div class="texto">${esc(p.texto)}</div>` : '';
   if (nov) el.classList.add('novedad');
@@ -610,7 +613,8 @@ function armarAudio(caja) {
   a.onpause = () => { play.innerHTML = ICONOS.play; play.setAttribute('aria-label', 'Escuchar'); };
   a.ontimeupdate = mostrar;
   a.onloadedmetadata = mostrar;
-  a.onended = () => { a.currentTime = 0; mostrar(); };
+  a.onended = () => { a.currentTime = 0; mostrar(); if (caja.dataset.post) marcarEscuchado(caja.dataset.post); };
+  a.addEventListener('timeupdate', () => { if (caja.dataset.post && a.duration && a.currentTime / a.duration > 0.9) marcarEscuchado(caja.dataset.post); });
   const saltar = (e) => {
     const r = barra.getBoundingClientRect();
     if (isFinite(a.duration)) a.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * a.duration;
@@ -787,7 +791,216 @@ function alActualizar() {
     const raiz = document.querySelector('.visor');
     const p = raiz && posts.find((x) => x.id === raiz.dataset.id);
     if (p) pintarPie(raiz, p);
-  } else if (r === '' && yo.clave) vistaInicio();
+  } else if (r === 'paseo' && !document.getElementById('paseo')) vistaPaseo();
+  else if (r === '' && yo.clave) vistaInicio();
+}
+
+/* ---------- Hora de compartir un mate ---------- */
+const LS_ESCUCHADOS = 'un-mate-juntas-escuchados';
+let escuchados;
+try { escuchados = new Set(JSON.parse(localStorage.getItem(LS_ESCUCHADOS)) || []); } catch { escuchados = new Set(); }
+function marcarEscuchado(id) {
+  if (escuchados.has(id)) return;
+  escuchados.add(id);
+  try { localStorage.setItem(LS_ESCUCHADOS, JSON.stringify([...escuchados])); } catch {}
+}
+const tieneAudio = (p) => p.media.some((m) => m.tipo === 'audio');
+const ajeno = (p) => !mismo(p.autor, yo.nombre);
+const sinVer = (p) => ajeno(p) && (tieneAudio(p) ? !escuchados.has(p.id) : !vistas.has(p.id));
+const rutaDe = (p) => (p.seccion === 'diario' ? `h/${p.id}/todas` : `p/${p.id}`);
+
+let botonMate = null;
+function actualizarBotonMate() {
+  const r = ruta();
+  const mostrar = !!yo.clave && !!yo.nombre && (r === '' || r.startsWith('s/') || r.startsWith('p/'));
+  if (!botonMate) {
+    botonMate = document.createElement('button');
+    botonMate.className = 'boton-mate';
+    botonMate.setAttribute('aria-label', 'Hora de compartir un mate');
+    botonMate.innerHTML = D.mate;
+    botonMate.onclick = abrirHoraDeMate;
+    document.body.append(botonMate);
+  }
+  botonMate.style.display = mostrar ? '' : 'none';
+  botonMate.classList.toggle('sonando', !!paseo.audio && !paseo.audio.paused);
+}
+
+function abrirHoraDeMate() {
+  const nuevos = posts.filter(sinVer).length;
+  const audiosNuevos = posts.filter((p) => tieneAudio(p) && ajeno(p) && !escuchados.has(p.id)).length;
+  const capa = document.createElement('div');
+  capa.className = 'capa-mate';
+  capa.innerHTML = `
+    <div class="hoja-mate" role="dialog" aria-label="Hora de compartir un mate">
+      <div class="hoja-dibujo">${D.mate}</div>
+      <h2 class="mano">Hora de compartir un mate</h2>
+      <button class="opcion-mate" data-op="cebar">
+        <b>Cebame algo</b>
+        <span>${nuevos ? `Algo al azar que todavía no viste. Te ${nuevos === 1 ? 'queda 1' : `quedan ${nuevos}`}.` : 'Ya viste todo. Te cebo uno de los de antes.'}</span>
+      </button>
+      <button class="opcion-mate" data-op="paseo">
+        <b>Modo paseo</b>
+        <span>${audiosNuevos ? `Los audios que no escuchaste, uno atrás del otro, como un podcast. ${audiosNuevos === 1 ? 'Hay 1' : `Hay ${audiosNuevos}`}.` : (paseo.audio ? 'Volvé a lo que estabas escuchando.' : 'Ya escuchaste todos. Podés repasarlos.')}</span>
+      </button>
+      <button class="link" data-op="cerrar">Ahora no</button>
+    </div>`;
+  const cerrar = () => capa.remove();
+  capa.onclick = (e) => {
+    const op = e.target.closest('[data-op]')?.dataset.op;
+    if (e.target === capa || op === 'cerrar') return cerrar();
+    if (op === 'cebar') { cerrar(); cebarAlgo(); }
+    if (op === 'paseo') { cerrar(); ir('paseo'); }
+  };
+  document.body.append(capa);
+}
+
+function cebarAlgo() {
+  const nuevos = posts.filter(sinVer);
+  const lista = nuevos.length ? nuevos : posts.filter(ajeno);
+  if (!lista.length) return alert('Todavía no hay nada para cebar. ¡Contá algo vos!');
+  const p = lista[Math.floor(Math.random() * lista.length)];
+  ir(rutaDe(p));
+}
+
+/* Modo paseo: un solo reproductor que sigue sonando aunque cambies de pantalla */
+const paseo = { audio: null, fila: [], i: 0, repaso: false };
+function filaPaseo(todos) {
+  const conAudio = [...posts].filter((p) => tieneAudio(p) && ajeno(p)).sort((a, b) => a.fecha - b.fecha);
+  return todos ? conAudio : conAudio.filter((p) => !escuchados.has(p.id));
+}
+const audioDe = (p) => p.media.find((m) => m.tipo === 'audio');
+
+function cargarPaseo(i, arrancar = true) {
+  paseo.i = i;
+  const p = paseo.fila[i];
+  if (!p) return;
+  if (!paseo.audio) {
+    paseo.audio = document.createElement('audio');
+    paseo.audio.preload = 'auto';
+    document.body.append(paseo.audio);
+    paseo.audio.addEventListener('timeupdate', pintarProgresoPaseo);
+    paseo.audio.addEventListener('loadedmetadata', pintarProgresoPaseo);
+    paseo.audio.addEventListener('play', () => { pintarPaseo(); actualizarBotonMate(); });
+    paseo.audio.addEventListener('pause', () => { pintarPaseo(); actualizarBotonMate(); });
+    paseo.audio.addEventListener('ended', () => {
+      marcarEscuchado(paseo.fila[paseo.i].id);
+      if (paseo.i + 1 < paseo.fila.length) cargarPaseo(paseo.i + 1);
+      else pintarPaseo(true);
+    });
+    if ('mediaSession' in navigator) {
+      const ms = navigator.mediaSession;
+      ms.setActionHandler('play', () => paseo.audio.play());
+      ms.setActionHandler('pause', () => paseo.audio.pause());
+      ms.setActionHandler('nexttrack', () => saltarPaseo(1));
+      ms.setActionHandler('previoustrack', () => saltarPaseo(-1));
+      try { ms.setActionHandler('seekbackward', () => { paseo.audio.currentTime = Math.max(0, paseo.audio.currentTime - 15); }); } catch {}
+      try { ms.setActionHandler('seekforward', () => { paseo.audio.currentTime += 30; }); } catch {}
+    }
+  }
+  const m = audioDe(p);
+  const [principal] = fuentesAudio(m);
+  paseo.audio.onerror = () => { if (m.url && paseo.audio.src !== m.url) { paseo.audio.src = m.url; if (arrancar) paseo.audio.play().catch(() => {}); } };
+  paseo.audio.src = principal;
+  if ('mediaSession' in navigator && window.MediaMetadata) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: `Audio de ${p.autor}`,
+      artist: 'Un mate juntas',
+      album: seccion(p.seccion)?.nombre || '',
+      artwork: [{ src: new URL('mate.svg', location.href).href, sizes: '512x512', type: 'image/svg+xml' }],
+    });
+  }
+  if (arrancar) paseo.audio.play().catch(() => {});
+  pintarPaseo();
+}
+function saltarPaseo(k) {
+  const j = paseo.i + k;
+  if (j < 0 || j >= paseo.fila.length) return;
+  if (k > 0) marcarEscuchado(paseo.fila[paseo.i].id);
+  cargarPaseo(j);
+}
+
+function vistaPaseo() {
+  seccionActual = null;
+  postActual = null;
+  if (!cargado) { marco('<main class="pantalla"><div class="cargando">Preparando los audios…</div></main>'); return; }
+  if (!paseo.audio || !paseo.fila.length) {
+    paseo.fila = filaPaseo(false);
+    paseo.repaso = false;
+    paseo.i = 0;
+    if (!paseo.fila.length) { paseo.fila = filaPaseo(true); paseo.repaso = true; }
+  }
+  marco(`
+    <main class="pantalla paseo">
+      <button class="link volver" data-ir="">${ICONOS.flecha} Volver</button>
+      ${suelto(D.termo, 'top:70px;right:4%', 10, 28)}
+      <h2 class="mano">Modo paseo</h2>
+      <p class="chico">Ponete los auriculares y guardá el celu: sigue sonando con la pantalla bloqueada.</p>
+      <div id="paseo"></div>
+    </main>`);
+  if (!paseo.fila.length) {
+    document.getElementById('paseo').innerHTML = '<div class="vacio"><div class="mano" style="font-size:26px">Todavía no hay audios</div><p style="margin:0">Cuando alguna mande uno, aparece acá.</p></div>';
+    return;
+  }
+  if (!paseo.audio || !paseo.audio.src) cargarPaseo(paseo.i, false);
+  else pintarPaseo();
+}
+
+function pintarPaseo(termino = false) {
+  const caja = document.getElementById('paseo');
+  const p = paseo.fila[paseo.i];
+  if (!caja || !p) return;
+  const sonando = paseo.audio && !paseo.audio.paused;
+  const faltan = paseo.fila.length - paseo.i - 1;
+  const minutos = Math.round(paseo.fila.slice(paseo.i + 1).reduce((t, x) => t + (audioDe(x).dur || 0), 0) / 60);
+  const fila = paseo.fila.map((x, j) => `<li class="${j === paseo.i ? 'actual' : ''} ${escuchados.has(x.id) ? 'escuchado' : ''}"><button data-paseo="${j}">${avatar(x.autor)}<span>${esc(x.titulo || (x.texto || '').slice(0, 40) || 'Audio')}<small>${esc(x.autor)}${audioDe(x).dur ? ` · ${mmss(audioDe(x).dur)}` : ''}</small></span></button></li>`).join('');
+  caja.innerHTML = `
+    ${paseo.repaso ? '<p class="ayuda" style="margin:12px 0 0">Ya escuchaste todos: esto es un repaso.</p>' : ''}
+    <div class="tarjeta-paseo polaroid">
+      <div class="paseo-quien">${avatar(p.autor)}<div><b>Audio de ${esc(p.autor)}</b><div class="chico">${esc(seccion(p.seccion)?.nombre || '')} · ${hace(p.fecha)}</div></div>${privado(p)}</div>
+      ${p.titulo ? `<div class="titulo-post">${esc(p.titulo)}</div>` : ''}
+      ${p.texto ? `<div class="texto paseo-texto">${esc(p.texto)}</div>` : ''}
+      <div class="paseo-barra" id="paseo-barra"><span><i id="paseo-relleno"></i></span></div>
+      <div class="paseo-tiempos"><span id="paseo-va">0:00</span><span id="paseo-total">${audioDe(p).dur ? mmss(audioDe(p).dur) : '--:--'}</span></div>
+      <div class="paseo-controles">
+        <button class="paseo-btn" id="paseo-atras" aria-label="Anterior" ${paseo.i === 0 ? 'disabled' : ''}>⏮</button>
+        <button class="paseo-btn" id="paseo-menos" aria-label="Atrasar 15 segundos">−15</button>
+        <button class="paseo-play" id="paseo-play" aria-label="${sonando ? 'Pausar' : 'Escuchar'}">${sonando ? ICONOS.pausa : ICONOS.play}</button>
+        <button class="paseo-btn" id="paseo-mas" aria-label="Adelantar 30 segundos">+30</button>
+        <button class="paseo-btn" id="paseo-sig" aria-label="Siguiente" ${faltan ? '' : 'disabled'}>⏭</button>
+      </div>
+      <div class="paseo-pie">
+        <button class="vel" id="paseo-vel">${String(paseo.audio?.playbackRate || 1).replace('.', ',')}x</button>
+        <span class="chico">${termino ? '¡Terminaste! Escuchaste todo.' : faltan ? `Después ${faltan === 1 ? 'viene 1 más' : `vienen ${faltan} más`}${minutos ? ` · ${minutos} min` : ''}` : 'Es el último'}</span>
+        <button class="link" data-ir="${rutaDe(p)}">Ver y responder</button>
+      </div>
+    </div>
+    ${paseo.fila.length > 1 ? `<div class="chico" style="margin:20px 0 8px">En la fila</div><ol class="fila-paseo">${fila}</ol>` : ''}`;
+  const a = paseo.audio;
+  document.getElementById('paseo-play').onclick = () => { if (a.paused) a.play().catch(console.error); else a.pause(); };
+  document.getElementById('paseo-atras').onclick = () => saltarPaseo(-1);
+  document.getElementById('paseo-sig').onclick = () => saltarPaseo(1);
+  document.getElementById('paseo-menos').onclick = () => { a.currentTime = Math.max(0, a.currentTime - 15); };
+  document.getElementById('paseo-mas').onclick = () => { a.currentTime += 30; };
+  document.getElementById('paseo-vel').onclick = (e) => {
+    const VELS = [1, 1.25, 1.5, 2];
+    const v = VELS[(VELS.indexOf(a.playbackRate) + 1) % VELS.length];
+    a.playbackRate = v;
+    e.target.textContent = `${v}x`.replace('.', ',');
+  };
+  caja.querySelectorAll('[data-paseo]').forEach((b) => { b.onclick = () => cargarPaseo(Number(b.dataset.paseo)); });
+  const barra = document.getElementById('paseo-barra');
+  const saltar = (e) => { const r = barra.getBoundingClientRect(); if (isFinite(a.duration)) a.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * a.duration; };
+  barra.onpointerdown = (e) => { saltar(e); barra.setPointerCapture(e.pointerId); barra.onpointermove = saltar; };
+  barra.onpointerup = () => { barra.onpointermove = null; };
+  pintarProgresoPaseo();
+}
+function pintarProgresoPaseo() {
+  const a = paseo.audio;
+  const rel = document.getElementById('paseo-relleno');
+  if (!a || !rel) return;
+  rel.style.width = isFinite(a.duration) && a.duration ? `${(a.currentTime / a.duration) * 100}%` : '0';
+  document.getElementById('paseo-va').textContent = mmss(a.currentTime || 0);
+  if (isFinite(a.duration)) document.getElementById('paseo-total').textContent = mmss(a.duration);
 }
 
 /* ---------- Clicks generales ---------- */
