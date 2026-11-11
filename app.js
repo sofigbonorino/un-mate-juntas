@@ -9,7 +9,7 @@ const SECCIONES = [
 ];
 const MODO_PRUEBA = !CONFIG.firebase;
 const MAX_VIDEO_MB = 100;
-const MAX_FOTO_MB = 10;
+const MAX_FOTO_MB = 150; // se achica antes de subir; Cloudinary gratis acepta hasta 10 MB
 const $app = document.getElementById('app');
 
 /* ---------- Memoria del navegador ---------- */
@@ -57,6 +57,7 @@ function avatar(nombre) {
   const [bg, fg] = TONOS[h % TONOS.length];
   return `<div class="avatar" style="background:${bg};color:${fg}">${esc((nombre || '?').trim()[0]?.toUpperCase() || '?')}</div>`;
 }
+let ICONO_FOTO = "";
 const ICONOS = {
   corazon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-9-9.2C1.6 7.3 3.8 4 7.2 4c2 0 3.5 1.1 4.8 2.8C13.3 5.1 14.8 4 16.8 4c3.4 0 5.6 3.3 4.2 6.8C19 15.6 12 20 12 20z"/></svg>',
   corazonLleno: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7-4.4-9-9.2C1.6 7.3 3.8 4 7.2 4c2 0 3.5 1.1 4.8 2.8C13.3 5.1 14.8 4 16.8 4c3.4 0 5.6 3.3 4.2 6.8C19 15.6 12 20 12 20z"/></svg>',
@@ -68,6 +69,8 @@ const ICONOS = {
   video: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>',
   flecha: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>',
 };
+ICONO_FOTO = ICONOS.foto;
+window.ICONO_FOTO = ICONO_FOTO;
 const MATE = `<svg width="96" height="96" viewBox="0 0 64 64" aria-hidden="true"><path d="M38 6l-4 22" stroke="#8A7558" stroke-width="3" stroke-linecap="round"/><path d="M16 26h32c0 16-6 30-16 30S16 42 16 26z" fill="#B5533C"/><path d="M16 26h32" stroke="#7A3424" stroke-width="3" stroke-linecap="round"/><ellipse cx="32" cy="26" rx="14" ry="3" fill="#6E8B3D"/></svg>`;
 
 /* ---------- Dónde se guardan las cosas ---------- */
@@ -143,6 +146,28 @@ function tipoDe(file) {
   if (t.startsWith('audio/') || ['opus', 'ogg', 'm4a', 'mp3', 'wav', 'aac', 'amr'].includes(ext)) return 'audio';
   if (t.startsWith('video/') || ['mov', 'mp4', 'webm', '3gp'].includes(ext)) return 'video';
   return null;
+}
+
+// Achica la foto (máx. 2400 px de lado, JPG) para que pese poco y la acepte Cloudinary.
+// Si el celu no la puede leer (por ejemplo HEIC en Android), se sube la original.
+async function achicarFoto(file) {
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const lado = 2400;
+    const k = Math.min(1, lado / Math.max(bmp.width, bmp.height));
+    if (k === 1 && file.type === 'image/jpeg' && file.size < 4 * 1048576) { bmp.close?.(); return file; }
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * k);
+    c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    bmp.close?.();
+    const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.86));
+    if (!blob) return file;
+    return new File([blob], (file.name || 'foto').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch (e) {
+    console.warn('No se pudo achicar la foto', e);
+    return file;
+  }
 }
 
 function subirArchivo(file, tipo, alAvanzar) {
@@ -752,7 +777,7 @@ function vistaNuevo(secId) {
     const item = { file, tipo, el: document.createElement('div') };
     item.el.className = 'adjunto';
     const mini = tipo === 'foto' && file.type.startsWith('image/') && !/hei[cf]/i.test(file.type)
-      ? `<img class="miniatura" src="${URL.createObjectURL(file)}" alt="">`
+      ? `<img class="miniatura" src="${URL.createObjectURL(file)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'miniatura',innerHTML:ICONO_FOTO}))">`
       : `<div class="miniatura">${ICONOS[tipo]}</div>`;
     item.el.innerHTML = `${mini}<div class="nom">${esc(file.name)}<div class="progreso"><i></i></div></div><button type="button" class="quitar" aria-label="Quitar">×</button>`;
     item.el.querySelector('.quitar').onclick = () => { adjuntos.splice(adjuntos.indexOf(item), 1); item.el.remove(); };
@@ -834,7 +859,9 @@ function vistaNuevo(secId) {
       for (const [i, a] of adjuntos.entries()) {
         btn.textContent = adjuntos.length > 1 ? `Subiendo ${i + 1} de ${adjuntos.length}…` : 'Subiendo…';
         const barra = a.el.querySelector('.progreso i');
-        media.push(await subirArchivo(a.file, a.tipo, (x) => { barra.style.width = `${Math.round(x * 100)}%`; }));
+        const archivo = a.tipo === 'foto' ? await achicarFoto(a.file) : a.file;
+        if (a.tipo === 'foto' && archivo.size > 10 * 1048576) throw new Error('la foto es muy pesada. Probá con otra o sacale una captura');
+        media.push(await subirArchivo(archivo, a.tipo, (x) => { barra.style.width = `${Math.round(x * 100)}%`; }));
       }
       btn.textContent = 'Publicando…';
       const nuevo = { fecha: Date.now(), autor: yo.nombre, seccion: elegida, titulo, texto, media, corazones: [], respuestas: [] };
